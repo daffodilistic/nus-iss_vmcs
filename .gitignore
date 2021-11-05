@@ -24,3 +24,6 @@ hs_err_pid*
 
 # Ignore build artifacts
 vmcs/target/
+
+# Ignore Helidon-specific files
+.helidon
