@@ -5,10 +5,10 @@ This repository contains the source code for the Bridging Module Project for the
 1. Oracle JDK 17.0.1 (aka Java 17)
 2. Apache Maven 3.8.3
 3. Helidon CLI: https://helidon.io/docs/v2/#/about/05_cli
-
+4. Docker Desktop (for PostgreSQL image)
 ### Starting Helidon Development
-Run `helidon dev` in the `vmcs` subfolder 
-
+1. Run `docker-compose -f docker-compose.yml up -d` in the root folder
+2. Run `helidon dev` in the `vmcs` subfolder 
 ### Deployment
 TODO
 
