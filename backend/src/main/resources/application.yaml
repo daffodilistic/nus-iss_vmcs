@@ -1,6 +1,6 @@
 
 app:
-  greeting: "Hello"
+  greeting: "Bonjour"
 
 server:
   port: 8080
