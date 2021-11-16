@@ -4,6 +4,7 @@ package com.cooldrinkscompany.vmcs;
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
+import io.helidon.dbclient.DbClient;
 import io.helidon.health.HealthSupport;
 import io.helidon.health.checks.HealthChecks;
 import io.helidon.media.jsonp.JsonpSupport;
@@ -70,6 +71,10 @@ public final class Main {
      * @param config configuration of this server
      */
     private static Routing createRouting(Config config) {
+        Config dbConfig = config.get("db");
+
+        DbClient dbClient = DbClient.builder(dbConfig)
+                .build();
 
         MetricsSupport metrics = MetricsSupport.create();
         GreetService greetService = new GreetService(config);
@@ -81,6 +86,7 @@ public final class Main {
                 .register(health)                   // Health at "/health"
                 .register(metrics)                  // Metrics at "/metrics"
                 .register("/greet", greetService)
+                .register("/db", new VendingMachineService(dbClient))
                 .build();
     }
 }
