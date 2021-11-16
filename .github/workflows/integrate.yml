@@ -1,0 +1,16 @@
+name: Continuous Integration Tests
+
+on:
+  push:
+    branches:
+      - trunk
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Run a one-line script
+        uses: actions/checkout@v2
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
