@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  heroku-postgresql:
+    image: postgres:13
+    ports:
+      - "54321:5432"
+    environment:
+      - TZ=Asia/Singapore
+      - POSTGRES_DB=vmcs
+      - POSTGRES_PASSWORD=vmcs
+      - POSTGRES_USER=vmcs
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
