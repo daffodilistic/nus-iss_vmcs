@@ -23,8 +23,10 @@
 hs_err_pid*
 
 # Ignore build artifacts
-vmcs/target/
+backend/target/
 
 # Ignore Helidon-specific files
 .helidon
+
+# Ignore local PGSQL database files
 pgdata/
