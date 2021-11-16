@@ -27,3 +27,4 @@ vmcs/target/
 
 # Ignore Helidon-specific files
 .helidon
+pgdata/
