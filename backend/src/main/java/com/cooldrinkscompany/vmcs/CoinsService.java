@@ -17,13 +17,13 @@ import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.Service;
 
-public class PaymentService implements Service {
-    private static final Logger LOGGER = Logger.getLogger(PaymentService.class.getName());
+public class CoinsService implements Service {
+    private static final Logger LOGGER = Logger.getLogger(CoinsService.class.getName());
     private static final JsonBuilderFactory JSON_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
 
     private final DbClient dbClient;
 
-    PaymentService(DbClient dbClient) {
+    CoinsService(DbClient dbClient) {
         this.dbClient = dbClient;
 
         // MySQL init

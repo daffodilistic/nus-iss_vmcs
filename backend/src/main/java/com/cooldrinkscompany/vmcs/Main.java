@@ -87,7 +87,7 @@ public final class Main {
                 .register(metrics)                  // Metrics at "/metrics"
                 .register("/greet", greetService)
                 .register("/drinks", new DrinksService(dbClient))
-                .register("/pay", new PaymentService(dbClient))
+                .register("/coins", new CoinsService(dbClient))
                 .build();
     }
 }
