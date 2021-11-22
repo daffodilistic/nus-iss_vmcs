@@ -1,6 +1,8 @@
 package com.cooldrinkscompany.vmcs;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,11 +13,14 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
 import io.helidon.common.reactive.Multi;
+import io.helidon.common.reactive.Single;
 import io.helidon.dbclient.DbClient;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.Service;
+
+import com.cooldrinkscompany.vmcs.form.FormManageCoins;
 
 public class CoinsService implements Service {
     private static final Logger LOGGER = Logger.getLogger(CoinsService.class.getName());
@@ -23,12 +28,12 @@ public class CoinsService implements Service {
 
     private final DbClient dbClient;
 
-    CoinsService(DbClient dbClient) {
+    public CoinsService(DbClient dbClient) {
         this.dbClient = dbClient;
 
         // MySQL init
         dbClient.execute(handle -> handle
-                .createInsert("CREATE TABLE public.coins (id SERIAL PRIMARY KEY, denomination VARCHAR NULL, quantity SMALLINT)").execute())
+                .createInsert("CREATE TABLE public.coins (id SERIAL PRIMARY KEY, name VARCHAR NULL, denomination FLOAT, quantity INT)").execute())
                 .thenAccept(System.out::println).exceptionally(throwable -> {
                     LOGGER.log(Level.WARNING, "Failed to create table, maybe it already exists?", throwable);
                     return null;
@@ -37,7 +42,8 @@ public class CoinsService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules.get("/", this::listCoins);
+        rules.get("/", this::listCoins)
+        .get("/queryTolAmt", this::queryTolAmt);
     }
 
     private void listCoins(ServerRequest request, ServerResponse response) {
@@ -50,5 +56,14 @@ public class CoinsService implements Service {
             JsonArray array = arrayBuilder.build();
             response.send(Json.createObjectBuilder().add("coins", array).build());
         });
+    }
+
+    private void queryTolAmt(ServerRequest request, ServerResponse response){
+        LOGGER.info("start calculating total amount of Coins");
+        float amount = FormManageCoins.queryTolAmount();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Total Amount", amount)
+                .build();
+        response.send(returnObject);
     }
 }
