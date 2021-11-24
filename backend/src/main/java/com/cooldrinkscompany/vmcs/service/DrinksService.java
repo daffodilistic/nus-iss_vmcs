@@ -1,4 +1,4 @@
-package com.cooldrinkscompany.vmcs;
+package com.cooldrinkscompany.vmcs.service;
 
 import java.util.Collections;
 import java.util.logging.Level;
@@ -10,8 +10,8 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
+import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import io.helidon.common.reactive.Multi;
-import io.helidon.dbclient.DbClient;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -21,18 +21,10 @@ public class DrinksService implements Service {
     private static final Logger LOGGER = Logger.getLogger(DrinksService.class.getName());
     private static final JsonBuilderFactory JSON_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
 
-    private final DbClient dbClient;
+    private final ProductDAOImpl productDao;
 
-    DrinksService(DbClient dbClient) {
-        this.dbClient = dbClient;
-
-        // MySQL init
-        dbClient.execute(handle -> handle
-                .createInsert("CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL)").execute())
-                .thenAccept(System.out::println).exceptionally(throwable -> {
-                    LOGGER.log(Level.WARNING, "Failed to create table, maybe it already exists?", throwable);
-                    return null;
-                });
+    public DrinksService(ProductDAOImpl productDao) {
+        this.productDao = productDao;
     }
 
     @Override
@@ -41,9 +33,7 @@ public class DrinksService implements Service {
     }
 
     private void listDrinks(ServerRequest request, ServerResponse response) {
-        // Multi<JsonObject> rows = dbClient.execute(exec -> exec.createQuery("SELECT *
-        // FROM drinks").execute())
-        Multi<JsonObject> rows = dbClient.execute(exec -> exec.namedQuery("select-all"))
+        Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.namedQuery("select-all"))
                 .map(it -> it.as(JsonObject.class));
 
         JsonArrayBuilder jsonBuilder = JSON_FACTORY.createArrayBuilder();
