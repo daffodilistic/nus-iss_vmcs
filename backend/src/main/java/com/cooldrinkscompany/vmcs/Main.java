@@ -1,6 +1,7 @@
 
 package com.cooldrinkscompany.vmcs;
 
+import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
@@ -11,6 +12,9 @@ import io.helidon.media.jsonp.JsonpSupport;
 import io.helidon.metrics.MetricsSupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
+import com.cooldrinkscompany.vmcs.service.GreetService;
+import com.cooldrinkscompany.vmcs.service.DrinksService;
+import com.cooldrinkscompany.vmcs.service.CoinsService;
 
 /**
  * The application main class.
@@ -64,6 +68,13 @@ public final class Main {
         return webserver;
     }
 
+    private static ProductDAOImpl createDao(Config config){
+        Config dbConfig = config.get("db");
+        DbClient dbClient = DbClient.builder(dbConfig)
+                .build();
+        ProductDAOImpl productDao = new ProductDAOImpl(dbClient);
+        return productDao;
+    }
     /**
      * Creates new {@link Routing}.
      *
@@ -71,10 +82,7 @@ public final class Main {
      * @param config configuration of this server
      */
     private static Routing createRouting(Config config) {
-        Config dbConfig = config.get("db");
-
-        DbClient dbClient = DbClient.builder(dbConfig)
-                .build();
+        ProductDAOImpl productDao = createDao(config);
 
         MetricsSupport metrics = MetricsSupport.create();
         GreetService greetService = new GreetService(config);
@@ -86,8 +94,8 @@ public final class Main {
                 .register(health)                   // Health at "/health"
                 .register(metrics)                  // Metrics at "/metrics"
                 .register("/greet", greetService)
-                .register("/drinks", new DrinksService(dbClient))
-                .register("/coins", new CoinsService(dbClient))
+                .register("/drinks", new DrinksService(productDao))
+                .register("/coins", new CoinsService(productDao))
                 .build();
     }
 }

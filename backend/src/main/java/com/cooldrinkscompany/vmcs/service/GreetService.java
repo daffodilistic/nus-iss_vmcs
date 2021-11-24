@@ -1,5 +1,5 @@
 
-package com.cooldrinkscompany.vmcs;
+package com.cooldrinkscompany.vmcs.service;
 
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -20,7 +20,7 @@ public class GreetService implements Service {
 
     private final String greeting;
 
-    GreetService(Config config) {
+    public GreetService(Config config) {
         greeting = config.get("app.greeting").asString().orElse("Ciao");
     }
 
