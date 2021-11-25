@@ -10,60 +10,94 @@
 <body>
   <div id="app">
     <!-- Buefy components goes here -->
-    <section class="section">
-      <h1 class="title">VMCS Simulator</h1>
-      <div class="field is-horizontal">
-        <div class="field-label is-normal">
-          <label class="label">Machine Power</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <b-switch v-model="isSwitchedOn" true-value="On" false-value="Off">
-              {{ isSwitchedOn }}
-            </b-switch>
+    <div class="container">
+      <section class="section">
+        <h1 class="title is-1">VMCS Simulator</h1>
+        <div class="field is-horizontal">
+          <div class="field-label is-normal">
+            <label class="label">Machine Power</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <b-switch v-model="isSwitchedOn" true-value="On" false-value="Off">
+                {{ isSwitchedOn }}
+              </b-switch>
+            </div>
           </div>
         </div>
-      </div>
-      <b-collapse class="panel is-light" animation="slide">
-        <template :#trigger=false>
-          <div class="panel-heading" role="button">
-            <b>Customer Panel</b>
+        <b-collapse class="panel is-dark" animation="slide" :open=true>
+          <template #trigger>
+            <div class="panel-heading" role="button">
+              <b>Customer Panel</b>
+            </div>
+          </template>
+          <div class="panel-block">
+            <div class="container is-fluid">
+              <h3 class="title has-text-centered">Insert Coins</h3>
+            </div>
           </div>
-        </template>
-        <div class="panel-block">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-          Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-          <br />
-          Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
-        </div>
-      </b-collapse>
-      <b-collapse class="panel is-warning" animation="slide" :open=false>
-        <template #trigger>
-          <div class="panel-heading" role="button">
-            <b>Maintainer Panel</b>
+          <div class="panel-block">
+            <div class="columns container is-centered">
+              <template v-for="(coin, index) in coins">
+                <div class="column is-narrow">
+                  <button v-if="coin.country === 'SG'" class="button is-info">{{ coin.name }}</button>
+                  <button v-if="coin.country === 'BN'" class="button is-danger">{{ coin.name }}</button>
+                </div>
+              </template>
+            </div>
           </div>
-        </template>
-        <div class="panel-block">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-          Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-          <br />
-          Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
-        </div>
-      </b-collapse>
-      <b-collapse class="panel is-danger" animation="slide" v-bind:open=false>
-        <template #trigger>
-          <div class="panel-heading" role="button">
-            <b>Machinery Panel</b>
+          <div class="panel-block">
+            <div class="columns is-centered">
+              <div class="column is-narrow">
+                <div class="card">
+                  <div class="card-content">
+                    <p class="title">
+                      Pepsi
+                    </p>
+                    <p class="subtitle">
+                      $1.10
+                    </p>
+                  </div>
+                  <footer class="card-footer">
+                    <p class="card-footer-item">
+                      <span>
+                        <b-button type="is-fullwidth is-rounded is-primary">Buy</b-button>
+                      </span>
+                    </p>
+                  </footer>
+                </div>
+              </div>
+            </div>
           </div>
-        </template>
-        <div class="panel-block">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-          Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-          <br />
-          Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
-        </div>
-      </b-collapse>
-    </section>
+        </b-collapse>
+        <b-collapse class="panel is-warning" animation="slide" :open=false>
+          <template #trigger>
+            <div class="panel-heading" role="button">
+              <b>Maintainer Panel</b>
+            </div>
+          </template>
+          <div class="panel-block">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
+            Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
+            <br />
+            Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
+          </div>
+        </b-collapse>
+        <b-collapse class="panel is-danger" animation="slide" :open=false>
+          <template #trigger>
+            <div class="panel-heading" role="button">
+              <b>Machinery Panel</b>
+            </div>
+          </template>
+          <div class="panel-block">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
+            Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
+            <br />
+            Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
+          </div>
+        </b-collapse>
+      </section>
+    </div>
   </div>
 
   <script src="https://unpkg.com/vue"></script>
@@ -79,7 +113,39 @@
       el: '#app',
       data() {
         return {
-          isSwitchedOn: "Off"
+          isSwitchedOn: "Off",
+          coins: [
+            {
+              name: "S$0.05",
+              country: "SG",
+              value: 5
+            },
+            {
+              name: "S$0.10",
+              country: "SG",
+              value: 10
+            },
+            {
+              name: "S$0.20",
+              country: "SG",
+              value: 20
+            },
+            {
+              name: "S$0.50",
+              country: "SG",
+              value: 50
+            },
+            {
+              name: "S$1.00",
+              country: "SG",
+              value: 100
+            },
+            {
+              name: "B$1.00",
+              country: "BN",
+              value: 100
+            },
+          ]
         }
       }
     })
