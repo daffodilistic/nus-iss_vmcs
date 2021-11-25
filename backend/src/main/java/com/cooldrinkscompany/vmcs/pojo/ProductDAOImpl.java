@@ -20,7 +20,7 @@ public class ProductDAOImpl implements ProductDAO {
 
     private static final Logger LOGGER = Logger.getLogger(ProductDAOImpl.class.getName());
     private static final JsonBuilderFactory JSON_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
-    public final String createDrinksTable = "CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL)";
+    public final String createDrinksTable = "CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL, price FLOAT, quantity INT)";
     public final String createCoinsTable = "CREATE TABLE public.coins (id SERIAL PRIMARY KEY, name VARCHAR NULL, denomination FLOAT, quantity INT)";
     public final String getCoinsQty = "SELECT quantity FROM coins where name = '%s'";
     private final DbClient dbClient;
