@@ -1,7 +1,7 @@
 package com.cooldrinkscompany.vmcs.service;
 
 import java.util.Collections;
-import java.util.logging.Level;
+//import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.json.Json;
@@ -10,8 +10,10 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
+import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import io.helidon.common.reactive.Multi;
+import io.helidon.webserver.*;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -29,9 +31,12 @@ public class DrinksService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules.get("/", this::listDrinks);
-    }
 
+        rules
+        .get("/", this::listDrinks)
+        .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty);
+    }
+/*
     private void listDrinks(ServerRequest request, ServerResponse response) {
         Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.namedQuery("select-all"))
                 .map(it -> it.as(JsonObject.class));
@@ -51,5 +56,27 @@ public class DrinksService implements Service {
             JsonArray jsonArray = jsonBuilder.build();
             response.send(jsonArray);
         });
+    }
+*/
+    private void listDrinks(ServerRequest request, ServerResponse response) {
+        Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.createQuery("SELECT * FROM drinks").execute())
+                .map(it -> it.as(JsonObject.class));
+
+        rows.collectList().thenAccept(list -> {
+            JsonArrayBuilder arrayBuilder = JSON_FACTORY.createArrayBuilder();
+            list.forEach(arrayBuilder::add);
+            JsonArray array = arrayBuilder.build();
+            response.send(Json.createObjectBuilder().add("drinks", array).build());
+        });
+    }
+
+    private void viewDrinkQty(ServerRequest request, ServerResponse response){
+        LOGGER.info("start viewing drinks");
+        String drinkName = request.path().toString().replace("/viewDrinkQty/","");
+        int qty = ControllerManageDrink.queryDrinkQty(this.productDao, drinkName);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Drink Qty:", qty)
+                .build();
+        response.send(returnObject);
     }
 }
