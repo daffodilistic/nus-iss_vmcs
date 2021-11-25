@@ -26,10 +26,10 @@ public class CoinsService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-
         rules
         .get("/", this::listCoins)
-        .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty);
+        .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
+        .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty);
     }
 
     private void listCoins(ServerRequest request, ServerResponse response) {
@@ -45,12 +45,32 @@ public class CoinsService implements Service {
     }
 
     private void viewCoinQty(ServerRequest request, ServerResponse response){
-        LOGGER.info("start viewing coins");
+        LOGGER.info("start viewing coins qty");
         String coinName = request.path().toString().replace("/viewCoinQty/","");
         int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                 .add("Coin Qty:", qty)
                 .build();
         response.send(returnObject);
+    }
+
+    private void setCoinQty(ServerRequest request, ServerResponse response){
+        LOGGER.info("start setting coins qty");
+        String coinParams = request.path().toString().replace("/setCoinQty/","");
+        String[] coinTypeAndQty = coinParams.split(":");
+        if(coinTypeAndQty.length != 2){
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:","Invalid Input! Must be CoinType:Qty format")
+                    .build();
+            response.send(returnObject);
+        }else{
+            String coinType=coinTypeAndQty[0];
+            String coinQty=coinTypeAndQty[1];
+            String status = ControllerManageCoin.setCoinQty(this.productDao, coinType, coinQty);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:", status)
+                    .build();
+            response.send(returnObject);
+        }
     }
 }

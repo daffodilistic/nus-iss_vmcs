@@ -23,6 +23,7 @@ public class ProductDAOImpl implements ProductDAO {
     public final String createDrinksTable = "CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL, price FLOAT, quantity INT)";
     public final String createCoinsTable = "CREATE TABLE public.coins (id SERIAL PRIMARY KEY, name VARCHAR NULL, denomination FLOAT, quantity INT)";
     public final String getCoinsQty = "SELECT quantity FROM coins where name = '%s'";
+    public final String setCoinsQty = "UPDATE coins SET quantity = %s where name = '%s'";
     private final DbClient dbClient;
 
     public ProductDAOImpl(DbClient dbClient) {
@@ -49,10 +50,10 @@ public class ProductDAOImpl implements ProductDAO {
         return dbClient;
     }
 
-    public String getQuantity(String name){
+    public String getCoinQuantity(String name){
         try {
             String sql = String.format(this.getCoinsQty,name);
-            LOGGER.info("getQty full sql is: " + sql);
+            LOGGER.info("getCoinQty full sql is: " + sql);
             Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
                     .map(it -> it.as(JsonObject.class)).collectList();
             JsonObject result = rows.get().get(0);
@@ -60,6 +61,26 @@ public class ProductDAOImpl implements ProductDAO {
         }catch (Exception e){
             LOGGER.info(e.toString());
             return "NA";
+        }
+    }
+
+    public String setCoinQuantity(String name, String quantity){
+        try {
+            int qty = Integer.parseInt(quantity);
+            String sql = String.format(this.setCoinsQty, quantity, name);
+            LOGGER.info("setCoinQty full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            if (sqlResponse.equals("0")){
+                return "SQL Statement update failed. Do you indicate the correct coin name?";
+            }else{
+                return "Success";
+            }
+        }catch(NumberFormatException ne){
+            LOGGER.info(ne.toString());
+            return "Failed. Input qty cannot convert to integer.";
+        } catch (Exception e){
+            LOGGER.info(e.toString());
+            return "Failed. Unexpected error, please check log.";
         }
     }
 

@@ -6,12 +6,11 @@ public class ControllerManageDrink {
 
     
     public static int queryDrinkQty(ProductDAOImpl dao, String name){
-        String qty = dao.getQuantity(name);
+        String qty = dao.getCoinQuantity(name);
         if(qty.equals("NA")){
             return Integer.MAX_VALUE;
         }else{
             return Integer.parseInt(qty);
         }
     }
-
 }

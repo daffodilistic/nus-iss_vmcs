@@ -14,12 +14,17 @@ public class ControllerManageCoin {
     }
 
     public static int queryCoinQty(ProductDAOImpl dao, String name){
-        String qty = dao.getQuantity(name);
+        String qty = dao.getCoinQuantity(name);
         if(qty.equals("NA")){
             return Integer.MAX_VALUE;
         }else{
             return Integer.parseInt(qty);
         }
     }
+    public static String setCoinQty(ProductDAOImpl dao, String coinType, String coinQty){
+        String status = dao.setCoinQuantity(coinType, coinQty);
+        return status;
+    }
+
 
 }
