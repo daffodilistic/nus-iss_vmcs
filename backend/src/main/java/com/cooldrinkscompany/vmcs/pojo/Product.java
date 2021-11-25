@@ -1,15 +1,10 @@
 package com.cooldrinkscompany.vmcs.pojo;
-public final class Drink {
-    private int id;
-    private String name;
-    private int quantity;
-    private double price = 0.0d;
-}
 
-abstract class Product  
-{  
-    public abstract String productType { get; }  
-    public abstract String name { get; set; }  
-    public abstract int quantity { get; set; }
-    private abstract double price = 0.0d;  
+public abstract class Product {
+    // Instance variables which are inherited by child classes
+    protected int id;
+    protected String productType;
+    protected String name;
+    protected int quantity = 0;
+    protected double price = 0.0d;
 }
