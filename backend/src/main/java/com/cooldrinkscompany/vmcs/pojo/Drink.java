@@ -1,16 +1,13 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
-public final class Drink {
-    private int id;
-    private String name;
-    private int quantity;
-    private double price = 0.0d;
-
+public final class Drink extends Product {
+    
     public Drink() {
         // empty constructor required for JSON-B (JSR 367)
     }
 
     public Drink(int id, String name, int quantity, double price) {
+        this.productType = this.getClass().getSimpleName();
         this.id = id;
         this.name = name;
         this.quantity = quantity;
@@ -21,6 +18,7 @@ public final class Drink {
         return id;
     }
 
+    // ID should not be changable by program code; let PostgreSQL handle it
     // public final void setId(int id) {
     //     this.id = id;
     // }
