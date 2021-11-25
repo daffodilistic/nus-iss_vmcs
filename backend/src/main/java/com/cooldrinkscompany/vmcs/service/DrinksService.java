@@ -34,7 +34,8 @@ public class DrinksService implements Service {
 
         rules
         .get("/", this::listDrinks)
-        .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty);
+        .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
+        .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty);
     }
 /*
     private void listDrinks(ServerRequest request, ServerResponse response) {
@@ -78,5 +79,25 @@ public class DrinksService implements Service {
                 .add("Drink Qty:", qty)
                 .build();
         response.send(returnObject);
+    }
+
+    private void setDrinkQty(ServerRequest request, ServerResponse response){
+        LOGGER.info("start setting drinks qty");
+        String drinkParams = request.path().toString().replace("/setDrinkQty/","");
+        String[] drinkTypeAndQty = drinkParams.split(":");
+        if(drinkTypeAndQty.length != 2){
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:","Invalid Input! Must be DrinkType:Qty format")
+                    .build();
+            response.send(returnObject);
+        }else{
+            String drinkType=drinkTypeAndQty[0];
+            String drinkQty=drinkTypeAndQty[1];
+            String status = ControllerManageDrink.setDrinkQty(this.productDao, drinkType, drinkQty);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:", status)
+                    .build();
+            response.send(returnObject);
+        }
     }
 }
