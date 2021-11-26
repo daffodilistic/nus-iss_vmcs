@@ -10,6 +10,8 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.google.gson.Gson;
+
 import io.helidon.common.reactive.Multi;
 import io.helidon.webserver.*;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageCoin;
@@ -26,15 +28,38 @@ public class CoinsService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules
-        .get("/", this::listCoins)
-        .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
-        .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty);
+        rules.get("/", this::listCoins).post("/insert", this::insertCoin)
+                .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
+                .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty);
+    }
+
+    public class InsertCoin {
+        public final String name;
+        public final String country;
+        public final int value;
+        public final int quantity;
+
+        public InsertCoin(String name, String country, int value, int quantity) {
+            this.name = name;
+            this.country = country;
+            this.value = value;
+            this.quantity = quantity;
+        }
+    }
+
+    private void insertCoin(ServerRequest request, ServerResponse response) {
+        LOGGER.info("[insertCoin]");
+        request.content().as(JsonObject.class).thenAccept(json -> {
+            Gson gson = new Gson();
+            InsertCoin insertCoin = gson.fromJson(json.toString(), InsertCoin.class);
+            LOGGER.info(gson.toJson(insertCoin));
+            response.send("OK");
+        });
     }
 
     private void listCoins(ServerRequest request, ServerResponse response) {
-        Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.createQuery("SELECT * FROM coins").execute())
-                .map(it -> it.as(JsonObject.class));
+        Multi<JsonObject> rows = this.productDao.getDbClient()
+                .execute(exec -> exec.createQuery("SELECT * FROM coins").execute()).map(it -> it.as(JsonObject.class));
 
         rows.collectList().thenAccept(list -> {
             JsonArrayBuilder arrayBuilder = JSON_FACTORY.createArrayBuilder();
@@ -44,32 +69,27 @@ public class CoinsService implements Service {
         });
     }
 
-    private void viewCoinQty(ServerRequest request, ServerResponse response){
+    private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
-        String coinName = request.path().toString().replace("/viewCoinQty/","");
+        String coinName = request.path().toString().replace("/viewCoinQty/", "");
         int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                .add("Coin Qty:", qty)
-                .build();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Coin Qty:", qty).build();
         response.send(returnObject);
     }
 
-    private void setCoinQty(ServerRequest request, ServerResponse response){
+    private void setCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting coins qty");
-        String coinParams = request.path().toString().replace("/setCoinQty/","");
+        String coinParams = request.path().toString().replace("/setCoinQty/", "");
         String[] coinTypeAndQty = coinParams.split(":");
-        if(coinTypeAndQty.length != 2){
+        if (coinTypeAndQty.length != 2) {
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:","Invalid Input! Must be CoinType:Qty format")
-                    .build();
+                    .add("Status:", "Invalid Input! Must be CoinType:Qty format").build();
             response.send(returnObject);
-        }else{
-            String coinType=coinTypeAndQty[0];
-            String coinQty=coinTypeAndQty[1];
+        } else {
+            String coinType = coinTypeAndQty[0];
+            String coinQty = coinTypeAndQty[1];
             String status = ControllerManageCoin.setCoinQty(this.productDao, coinType, coinQty);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:", status)
-                    .build();
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", status).build();
             response.send(returnObject);
         }
     }
