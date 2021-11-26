@@ -18,4 +18,19 @@ public class ControllerManageDrink {
         String status = dao.setDrinkQuantity(drinkType, drinkQty);
         return status;
     }
+
+
+    public static double queryDrinkPrice(ProductDAOImpl dao, String name){
+        String price = dao.getDrinkPrice(name);
+        if(price.equals("NA")){
+            return Double.MAX_VALUE;
+        }else{
+            return Double.parseDouble(price);
+        }
+    }
+
+    public static String setDrinkPrice(ProductDAOImpl dao, String drinkType, String drinkPrice){
+        String status = dao.setDrinkPrice(drinkType, drinkPrice);
+        return status;
+    }
 }

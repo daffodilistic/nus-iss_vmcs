@@ -35,7 +35,9 @@ public class DrinksService implements Service {
         rules
         .get("/", this::listDrinks)
         .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
-        .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty);
+        .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty)
+        .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
+        .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
 /*
     private void listDrinks(ServerRequest request, ServerResponse response) {
@@ -94,6 +96,36 @@ public class DrinksService implements Service {
             String drinkType=drinkTypeAndQty[0];
             String drinkQty=drinkTypeAndQty[1];
             String status = ControllerManageDrink.setDrinkQty(this.productDao, drinkType, drinkQty);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:", status)
+                    .build();
+            response.send(returnObject);
+        }
+    }
+
+    private void viewDrinkPrice(ServerRequest request, ServerResponse response){
+        LOGGER.info("start viewing drinks");
+        String drinkName = request.path().toString().replace("/viewDrinkPrice/","");
+        double price = ControllerManageDrink.queryDrinkPrice(this.productDao, drinkName);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Drink Price:", price)
+                .build();
+        response.send(returnObject);
+    }
+
+    private void setDrinkPrice(ServerRequest request, ServerResponse response){
+        LOGGER.info("start setting drinks price");
+        String drinkParams = request.path().toString().replace("/setDrinkPrice/","");
+        String[] drinkTypeAndPrice = drinkParams.split(":");
+        if(drinkTypeAndPrice.length != 2){
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:","Invalid Input! Must be DrinkType:Price format")
+                    .build();
+            response.send(returnObject);
+        }else{
+            String drinkType=drinkTypeAndPrice[0];
+            String drinkPrice=drinkTypeAndPrice[1];
+            String status = ControllerManageDrink.setDrinkPrice(this.productDao, drinkType, drinkPrice);
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                     .add("Status:", status)
                     .build();

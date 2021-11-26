@@ -30,7 +30,8 @@ public class CoinsService implements Service {
     public void update(Routing.Rules rules) {
         rules.get("/", this::listCoins).post("/insert", this::insertCoin)
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
-                .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty);
+                .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
+                .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice);
     }
 
     public class InsertCoin {
@@ -96,5 +97,15 @@ public class CoinsService implements Service {
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", status).build();
             response.send(returnObject);
         }
+    }
+
+    private void viewCoinPrice(ServerRequest request, ServerResponse response){
+        LOGGER.info("start viewing coins");
+        String coinName = request.path().toString().replace("/viewCoinPrice/","");
+        double price = ControllerManageCoin.queryCoinPrice(this.productDao, coinName);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Coin Denomination:", price)
+                .build();
+        response.send(returnObject);
     }
 }

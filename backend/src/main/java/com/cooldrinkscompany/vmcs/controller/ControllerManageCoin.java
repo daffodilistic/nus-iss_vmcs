@@ -43,6 +43,14 @@ public class ControllerManageCoin {
             return validateQty(coinQty);
         }
     }
-
+ 
+    public static double queryCoinPrice(ProductDAOImpl dao, String name){
+        String price = dao.getCoinPrice(name);
+        if(price.equals("NA")){
+            return Double.MAX_VALUE;
+        }else{
+            return Double.parseDouble(price);
+        }
+    }
 
 }

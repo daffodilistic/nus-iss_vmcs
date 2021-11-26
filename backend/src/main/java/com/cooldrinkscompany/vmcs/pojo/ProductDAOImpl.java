@@ -26,6 +26,9 @@ public class ProductDAOImpl implements ProductDAO {
     public final String setCoinsQty = "UPDATE coins SET quantity = %s where name = '%s'";
     public final String getDrinksQty = "SELECT quantity FROM drinks where name = '%s'";
     public final String setDrinksQty = "UPDATE drinks SET quantity = %s where name = '%s'";
+    public final String getDrinksPrice = "SELECT price FROM drinks where name = '%s'";
+    public final String setDrinksPrice = "UPDATE drinks SET price = %s where name = '%s'";
+    public final String getCoinsPrice = "SELECT denomination FROM coins where name = '%s'";
     private final DbClient dbClient;
 
     public ProductDAOImpl(DbClient dbClient) {
@@ -83,6 +86,20 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
+    public String getCoinPrice(String name){
+        try {
+            String sql = String.format(this.getCoinsPrice,name);
+            LOGGER.info("getCoinPrice full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("denomination").toString();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return "NA";
+        }
+    }
+
 
     //Drink methods
     public String getDrinkQuantity(String name){
@@ -101,7 +118,6 @@ public class ProductDAOImpl implements ProductDAO {
 
     public String setDrinkQuantity(String name, String quantity){
         try {
-            int qty = Integer.parseInt(quantity);
             String sql = String.format(this.setDrinksQty, quantity, name);
             LOGGER.info("setDrinkQty full sql is: " + sql);
             String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
@@ -118,25 +134,38 @@ public class ProductDAOImpl implements ProductDAO {
             return "Failed. Unexpected error, please check log.";
         }
     }
-//    public List<Product> getAllProduct(){
-//        return null;
-//    }
-//
-//    public Product getProduct(int ProductId){
-//        return null;
-//
-//    }
-//
-//    public void addProduct( Product product){
-//
-//    }
-//
-//    public void updateProduct( Product product){
-//
-//    }
-//
-//    public void deleteProduct( int ProductId){
-//
-//    }
+
+    public String getDrinkPrice(String name){
+        try {
+            String sql = String.format(this.getDrinksPrice,name);
+            LOGGER.info("getDrinkPrice full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("price").toString();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return "NA";
+        }
+    }
+
+    public String setDrinkPrice(String name, String price){
+        try {
+            String sql = String.format(this.setDrinksPrice, price, name);
+            LOGGER.info("setDrinkPrice full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            if (sqlResponse.equals("0")){
+                return "SQL Statement update failed. Do you indicate the correct Drink name?";
+            }else{
+                return "Success";
+            }
+        }catch(NumberFormatException ne){
+            LOGGER.info(ne.toString());
+            return "Failed. Input price cannot convert to integer.";
+        } catch (Exception e){
+            LOGGER.info(e.toString());
+            return "Failed. Unexpected error, please check log.";
+        }
+    }
 
 }    
