@@ -54,6 +54,10 @@ public class CoinsService implements Service {
             InsertCoin insertCoin = gson.fromJson(json.toString(), InsertCoin.class);
             LOGGER.info(gson.toJson(insertCoin));
             response.send("OK");
+        }).exceptionally(e -> {
+            LOGGER.info("[insertCoin] Exception: " + e.getMessage());
+            response.send("ERROR");
+            return null;
         });
     }
 
