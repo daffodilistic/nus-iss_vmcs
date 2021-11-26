@@ -3,6 +3,8 @@ package com.cooldrinkscompany.vmcs.controller;
 import com.cooldrinkscompany.vmcs.iterator.CoinIterator;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 
+import java.util.logging.Logger;
+
 public class ControllerManageCoin {
 
     private CoinIterator createIterator(){
@@ -11,6 +13,18 @@ public class ControllerManageCoin {
 
     public static float queryTolAmount(){
         return 0.0f;
+    }
+
+    private static String validateQty(String quantity){
+        try{
+            int qty = Integer.parseInt(quantity);
+            if (qty<=0 || qty>40){
+                return "Quantity cannot less than 0 or greater than 40";
+            }
+            return "Pass";
+        }catch(NumberFormatException ne){
+            return "Failed. Input qty cannot convert to integer.";
+        }
     }
 
     public static int queryCoinQty(ProductDAOImpl dao, String name){
@@ -22,8 +36,12 @@ public class ControllerManageCoin {
         }
     }
     public static String setCoinQty(ProductDAOImpl dao, String coinType, String coinQty){
-        String status = dao.setCoinQuantity(coinType, coinQty);
-        return status;
+        if (validateQty(coinQty).equals("Pass")){
+            String status = dao.setCoinQuantity(coinType, coinQty);
+            return status;
+        }else{
+            return validateQty(coinQty);
+        }
     }
 
 

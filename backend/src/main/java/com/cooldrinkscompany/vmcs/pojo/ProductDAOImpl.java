@@ -69,7 +69,6 @@ public class ProductDAOImpl implements ProductDAO {
 
     public String setCoinQuantity(String name, String quantity){
         try {
-            int qty = Integer.parseInt(quantity);
             String sql = String.format(this.setCoinsQty, quantity, name);
             LOGGER.info("setCoinQty full sql is: " + sql);
             String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
@@ -78,10 +77,7 @@ public class ProductDAOImpl implements ProductDAO {
             }else{
                 return "Success";
             }
-        }catch(NumberFormatException ne){
-            LOGGER.info(ne.toString());
-            return "Failed. Input qty cannot convert to integer.";
-        } catch (Exception e){
+        }catch (Exception e){
             LOGGER.info(e.toString());
             return "Failed. Unexpected error, please check log.";
         }
