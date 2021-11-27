@@ -17,6 +17,7 @@ public final class Session {
     }
 
     public Session(InsertCoin coin) {
+        this.id = -1;
         this.sessionId = UUID.randomUUID();
         this.coins = List.of(coin);
     }
