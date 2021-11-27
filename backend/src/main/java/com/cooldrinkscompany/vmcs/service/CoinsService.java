@@ -13,6 +13,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
+import com.cooldrinkscompany.vmcs.pojo.Coin;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.Session;
 import com.cooldrinkscompany.vmcs.pojo.SessionManager;
@@ -138,6 +139,10 @@ public class CoinsService implements Service {
             this.country = country;
             this.value = value;
             this.quantity = quantity;
+        }
+
+        public Coin convertToCoin() {
+            return new Coin(-1, this.name, this.quantity, this.value);
         }
     }
 }
