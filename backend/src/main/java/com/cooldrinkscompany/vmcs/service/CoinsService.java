@@ -70,8 +70,8 @@ public class CoinsService implements Service {
             e.printStackTrace(new PrintWriter(stackTrace));
 
             Map<String, Object> data = new HashMap<String, Object>();
-            data.put("error", e.getMessage());
-            // data.put("stacktrace", stackTrace.toString());
+            data.put("error", "Invalid coin!");
+            data.put("reason", e.toString());
             
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
