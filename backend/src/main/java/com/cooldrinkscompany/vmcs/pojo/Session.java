@@ -11,6 +11,13 @@ public final class Session {
     public UUID sessionId;
     public ArrayList<InsertCoin> coins;
 
+    public Session() {
+        // User should be able to start a session with no coins inserted
+        // i.e. "just turned on" state
+        this.coins = new ArrayList<InsertCoin>();
+        this.sessionId = UUID.randomUUID();
+    }
+
     public Session(InsertCoin coin) {
         this.id = -1;
         this.sessionId = UUID.randomUUID();
