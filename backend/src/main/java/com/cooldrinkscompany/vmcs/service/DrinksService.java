@@ -40,6 +40,10 @@ public class DrinksService implements Service {
                 .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
 
+    private void buyDrink(ServerRequest request, ServerResponse response) {
+        String drinkId = request.path().param("drinkId");
+        LOGGER.info("[buyDrink] drinkId: " + drinkId);
+        
     }
 
     private void listDrinks(ServerRequest request, ServerResponse response) {
