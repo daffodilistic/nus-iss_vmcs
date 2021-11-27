@@ -18,7 +18,7 @@ public class ControllerManageCoin {
     private static String validateQty(String quantity){
         try{
             int qty = Integer.parseInt(quantity);
-            if (qty<=0 || qty>40){
+            if (qty<0 || qty>40){
                 return "Quantity cannot less than 0 or greater than 40";
             }
             return "Pass";

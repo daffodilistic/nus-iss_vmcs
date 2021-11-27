@@ -1,5 +1,5 @@
-INSERT INTO public.drinks (id, name, price, quantity) VALUES (1,'Coca-Cola',0.75,3);
-INSERT INTO public.drinks (id, name, price, quantity) VALUES (2,'Fanta',0.85,0);
-INSERT INTO public.drinks (id, name, price, quantity) VALUES (3,'Sarsi',0.7,2);
-INSERT INTO public.drinks (id, name, price, quantity) VALUES (4,'Soya Bean',0.6,5);
+INSERT INTO public.drinks (id, name, price, quantity) VALUES (1,'Coca-Cola',75,3);
+INSERT INTO public.drinks (id, name, price, quantity) VALUES (2,'Fanta',85,0);
+INSERT INTO public.drinks (id, name, price, quantity) VALUES (3,'Sarsi',70,2);
+INSERT INTO public.drinks (id, name, price, quantity) VALUES (4,'Soya Bean',60,5);
 commit;
