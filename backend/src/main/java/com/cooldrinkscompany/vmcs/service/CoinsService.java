@@ -34,20 +34,6 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice);
     }
 
-    public class InsertCoin {
-        public final String name;
-        public final String country;
-        public final int value;
-        public final int quantity;
-
-        public InsertCoin(String name, String country, int value, int quantity) {
-            this.name = name;
-            this.country = country;
-            this.value = value;
-            this.quantity = quantity;
-        }
-    }
-
     private void insertCoin(ServerRequest request, ServerResponse response) {
         LOGGER.info("[insertCoin]");
         request.content().as(JsonObject.class).thenAccept(json -> {
@@ -107,5 +93,19 @@ public class CoinsService implements Service {
                 .add("Coin Denomination:", price)
                 .build();
         response.send(returnObject);
+    }
+    
+    public class InsertCoin {
+        public final String name;
+        public final String country;
+        public final int value;
+        public final int quantity;
+
+        public InsertCoin(String name, String country, int value, int quantity) {
+            this.name = name;
+            this.country = country;
+            this.value = value;
+            this.quantity = quantity;
+        }
     }
 }
