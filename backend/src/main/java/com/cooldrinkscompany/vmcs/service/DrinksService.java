@@ -39,28 +39,7 @@ public class DrinksService implements Service {
         .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
         .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
-/*
-    private void listDrinks(ServerRequest request, ServerResponse response) {
-        Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.namedQuery("select-all"))
-                .map(it -> it.as(JsonObject.class));
-
-        JsonArrayBuilder jsonBuilder = JSON_FACTORY.createArrayBuilder();
-
-        rows.forEach(it -> {
-            System.out.println(it.toString());
-            jsonBuilder.add(it);
-        }).whenComplete((input, exception) -> {
-            if (exception != null) {
-                LOGGER.log(Level.WARNING, "Failed to list drinks", exception);
-                response.status(500).send();
-                return;
-            }
-
-            JsonArray jsonArray = jsonBuilder.build();
-            response.send(jsonArray);
-        });
-    }
-*/
+    
     private void listDrinks(ServerRequest request, ServerResponse response) {
         Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.createQuery("SELECT * FROM drinks").execute())
                 .map(it -> it.as(JsonObject.class));
