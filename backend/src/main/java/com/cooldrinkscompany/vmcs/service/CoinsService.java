@@ -36,7 +36,9 @@ public class CoinsService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules.get("/", this::listCoins).post("/insert", this::insertCoin)
+        rules
+                .get("/", this::listCoins)
+                .post("/insert", this::insertCoin)
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice);
@@ -60,19 +62,19 @@ public class CoinsService implements Service {
                 LOGGER.info("[insertCoin] new session");
                 // Setup a new session for the request
                 Session session = SESSION_MANAGER.createSession(coin);
-                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));   
+                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             }
         }).exceptionally(e -> {
             LOGGER.info("[insertCoin] Exception: " + e.getMessage());
             e.printStackTrace();
-            
+
             StringWriter stackTrace = new StringWriter();
             e.printStackTrace(new PrintWriter(stackTrace));
 
             Map<String, Object> data = new HashMap<String, Object>();
             data.put("error", "Invalid coin!");
             data.put("reason", e.toString());
-            
+
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));

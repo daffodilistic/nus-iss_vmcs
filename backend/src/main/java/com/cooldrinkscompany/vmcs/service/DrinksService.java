@@ -31,17 +31,20 @@ public class DrinksService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-
         rules
-        .get("/", this::listDrinks)
-        .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
-        .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty)
-        .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
-        .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
+                .get("/", this::listDrinks)
+                .post("/{drinkId}/buy", this::buyDrink)
+                .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
+                .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty)
+                .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
+                .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
-    
+
+    }
+
     private void listDrinks(ServerRequest request, ServerResponse response) {
-        Multi<JsonObject> rows = this.productDao.getDbClient().execute(exec -> exec.createQuery("SELECT * FROM drinks").execute())
+        Multi<JsonObject> rows = this.productDao.getDbClient()
+                .execute(exec -> exec.createQuery("SELECT * FROM drinks").execute())
                 .map(it -> it.as(JsonObject.class));
 
         rows.collectList().thenAccept(list -> {
@@ -56,9 +59,9 @@ public class DrinksService implements Service {
         });
     }
 
-    private void viewDrinkQty(ServerRequest request, ServerResponse response){
+    private void viewDrinkQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing drinks");
-        String drinkName = request.path().toString().replace("/viewDrinkQty/","");
+        String drinkName = request.path().toString().replace("/viewDrinkQty/", "");
         int qty = ControllerManageDrink.queryDrinkQty(this.productDao, drinkName);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                 .add("Drink Qty:", qty)
@@ -66,18 +69,18 @@ public class DrinksService implements Service {
         response.send(returnObject);
     }
 
-    private void setDrinkQty(ServerRequest request, ServerResponse response){
+    private void setDrinkQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting drinks qty");
-        String drinkParams = request.path().toString().replace("/setDrinkQty/","");
+        String drinkParams = request.path().toString().replace("/setDrinkQty/", "");
         String[] drinkTypeAndQty = drinkParams.split(":");
-        if(drinkTypeAndQty.length != 2){
+        if (drinkTypeAndQty.length != 2) {
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:","Invalid Input! Must be DrinkType:Qty format")
+                    .add("Status:", "Invalid Input! Must be DrinkType:Qty format")
                     .build();
             response.send(returnObject);
-        }else{
-            String drinkType=drinkTypeAndQty[0];
-            String drinkQty=drinkTypeAndQty[1];
+        } else {
+            String drinkType = drinkTypeAndQty[0];
+            String drinkQty = drinkTypeAndQty[1];
             String status = ControllerManageDrink.setDrinkQty(this.productDao, drinkType, drinkQty);
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                     .add("Status:", status)
@@ -86,9 +89,9 @@ public class DrinksService implements Service {
         }
     }
 
-    private void viewDrinkPrice(ServerRequest request, ServerResponse response){
+    private void viewDrinkPrice(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing drinks");
-        String drinkName = request.path().toString().replace("/viewDrinkPrice/","");
+        String drinkName = request.path().toString().replace("/viewDrinkPrice/", "");
         double price = ControllerManageDrink.queryDrinkPrice(this.productDao, drinkName);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                 .add("Drink Price:", price)
@@ -96,18 +99,18 @@ public class DrinksService implements Service {
         response.send(returnObject);
     }
 
-    private void setDrinkPrice(ServerRequest request, ServerResponse response){
+    private void setDrinkPrice(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting drinks price");
-        String drinkParams = request.path().toString().replace("/setDrinkPrice/","");
+        String drinkParams = request.path().toString().replace("/setDrinkPrice/", "");
         String[] drinkTypeAndPrice = drinkParams.split(":");
-        if(drinkTypeAndPrice.length != 2){
+        if (drinkTypeAndPrice.length != 2) {
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:","Invalid Input! Must be DrinkType:Price format")
+                    .add("Status:", "Invalid Input! Must be DrinkType:Price format")
                     .build();
             response.send(returnObject);
-        }else{
-            String drinkType=drinkTypeAndPrice[0];
-            String drinkPrice=drinkTypeAndPrice[1];
+        } else {
+            String drinkType = drinkTypeAndPrice[0];
+            String drinkPrice = drinkTypeAndPrice[1];
             String status = ControllerManageDrink.setDrinkPrice(this.productDao, drinkType, drinkPrice);
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                     .add("Status:", status)
