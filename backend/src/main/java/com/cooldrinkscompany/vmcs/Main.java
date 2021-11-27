@@ -13,6 +13,7 @@ import io.helidon.metrics.MetricsSupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import com.cooldrinkscompany.vmcs.service.GreetService;
+import com.cooldrinkscompany.vmcs.service.WebSocketService;
 import com.cooldrinkscompany.vmcs.service.DrinksService;
 import com.cooldrinkscompany.vmcs.service.CoinsService;
 
@@ -94,6 +95,7 @@ public final class Main {
                 .register(health)                   // Health at "/health"
                 .register(metrics)                  // Metrics at "/metrics"
                 .register("/greet", greetService)
+                .register("/websocket", new WebSocketService())
                 .register("/drinks", new DrinksService(productDao))
                 .register("/coins", new CoinsService(productDao))
                 .build();
