@@ -26,7 +26,7 @@ public final class Session {
         for (InsertCoin c : coins) {
             if (c.value == coin.value) {
                 c.quantity += 1;
-                return;
+                break;
             }
         }
         coins.add(coin);
