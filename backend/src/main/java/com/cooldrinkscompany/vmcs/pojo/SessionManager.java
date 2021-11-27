@@ -13,21 +13,34 @@ public final class SessionManager {
     private static SessionManager INSTANCE;
     List<Session> sessions;
 
-    private SessionManager() {    
-        sessions = new ArrayList<Session>();    
+    private SessionManager() {
+        sessions = new ArrayList<Session>();
     }
-    
+
     public static SessionManager getInstance() {
-        if(INSTANCE == null) {
+        if (INSTANCE == null) {
             INSTANCE = new SessionManager();
         }
-        
+
         return INSTANCE;
     }
 
     public Session createSession(InsertCoin coin) {
         Session session = new Session(coin);
         sessions.add(session);
+        LOGGER.info(new Gson().toJson(sessions));
+        return session;
+    }
+
+    public Session updateSession(String sessionId, InsertCoin coin) {
+        Session session = null;
+        for (Session s : sessions) {
+            if (s.sessionId == s.sessionId) {
+                s.addCoin(coin);
+                session = s;
+                break;
+            }
+        }
         LOGGER.info(new Gson().toJson(sessions));
         return session;
     }

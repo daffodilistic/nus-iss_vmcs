@@ -50,19 +50,21 @@ public class CoinsService implements Service {
             Gson gson = new Gson();
             InsertCoin coin = gson.fromJson(json.toString(), InsertCoin.class);
             LOGGER.info(gson.toJson(coin));
-            // TODO: check for sessionID in URL query parameter, and either
-            // initialize a new session or update existing session
             if (isExistingSession) {
-                
+                // Update coins for existing session
+                LOGGER.info("[insertCoin] existing session");
+                String sessionId = request.queryParams().first("sessionId").get();
+                Session session = SESSION_MANAGER.updateSession(sessionId, coin);
+                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             } else {
+                LOGGER.info("[insertCoin] new session");
                 // Setup a new session for the request
                 Session session = SESSION_MANAGER.createSession(coin);
-                
+                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));   
             }
-            response.send(coin);
         }).exceptionally(e -> {
             LOGGER.info("[insertCoin] Exception: " + e.getMessage());
-            // e.printStackTrace();
+            e.printStackTrace();
             
             StringWriter stackTrace = new StringWriter();
             e.printStackTrace(new PrintWriter(stackTrace));
@@ -72,7 +74,7 @@ public class CoinsService implements Service {
             // data.put("stacktrace", stackTrace.toString());
             
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
-            
+
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
             return null;
         });

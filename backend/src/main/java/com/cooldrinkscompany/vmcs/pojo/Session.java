@@ -1,27 +1,34 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import com.cooldrinkscompany.vmcs.service.CoinsService.InsertCoin;
 
 public final class Session {
-    public int id;
+    public transient int id;
     public UUID sessionId;
-    public List<InsertCoin> coins;
-
-    public Session(int id, UUID sessionId, List<InsertCoin> coins) {
-        this.id = id;
-        this.sessionId = sessionId;
-        this.coins = coins;
-    }
+    public ArrayList<InsertCoin> coins;
 
     public Session(InsertCoin coin) {
         this.id = -1;
         this.sessionId = UUID.randomUUID();
-        this.coins = List.of(coin);
+        coin.quantity += 1;
+        this.coins = new ArrayList<InsertCoin>();
+        this.coins.add(coin);
     }
 
     public void save() {
+    }
+
+    public void addCoin(InsertCoin coin) {
+        for (InsertCoin c : coins) {
+            if (c.value == coin.value) {
+                c.quantity += 1;
+                return;
+            }
+        }
+        coins.add(coin);
     }
 }
