@@ -30,3 +30,4 @@ backend/target/
 
 # Ignore local PGSQL database files
 pgdata/
+.vscode/
