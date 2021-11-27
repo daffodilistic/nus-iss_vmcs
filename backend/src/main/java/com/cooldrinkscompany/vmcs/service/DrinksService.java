@@ -49,6 +49,10 @@ public class DrinksService implements Service {
             list.forEach(arrayBuilder::add);
             JsonArray array = arrayBuilder.build();
             response.send(Json.createObjectBuilder().add("drinks", array).build());
+        }).exceptionally(e -> {
+            LOGGER.info("[listDrinks] Exception: " + e.getMessage());
+            response.send("ERROR");
+            return null;
         });
     }
 
