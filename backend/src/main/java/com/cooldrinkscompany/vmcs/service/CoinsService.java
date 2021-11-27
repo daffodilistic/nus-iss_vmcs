@@ -124,10 +124,10 @@ public class CoinsService implements Service {
     }
 
     public class InsertCoin {
-        public final String name;
-        public final String country;
-        public final int value;
-        public final int quantity;
+        public String name;
+        public String country;
+        public int value;
+        public int quantity;
 
         public InsertCoin(String name, String country, int value, int quantity) {
             this.name = name;
