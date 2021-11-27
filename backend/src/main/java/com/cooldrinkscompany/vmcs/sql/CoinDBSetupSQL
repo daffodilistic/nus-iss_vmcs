@@ -1,6 +1,6 @@
-INSERT INTO public.coins (id, name, denomination, quantity) VALUES (1,'5c',0.05,4);
-INSERT INTO public.coins (id, name, denomination, quantity) VALUES (2,'10c',0.1,1);
-INSERT INTO public.coins (id, name, denomination, quantity) VALUES (3,'20c',0.2,0);
-INSERT INTO public.coins (id, name, denomination, quantity) VALUES (4,'50c',0.5,4);
-INSERT INTO public.coins (id, name, denomination, quantity) VALUES (5,'$1',1.0,6);
+INSERT INTO public.coins (id, name, denomination, quantity) VALUES (1,'5c',5,4);
+INSERT INTO public.coins (id, name, denomination, quantity) VALUES (2,'10c',10,1);
+INSERT INTO public.coins (id, name, denomination, quantity) VALUES (3,'20c',20,0);
+INSERT INTO public.coins (id, name, denomination, quantity) VALUES (4,'50c',50,4);
+INSERT INTO public.coins (id, name, denomination, quantity) VALUES (5,'$1',100,6);
 commit;
