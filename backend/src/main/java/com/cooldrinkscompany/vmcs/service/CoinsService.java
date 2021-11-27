@@ -39,7 +39,9 @@ public class CoinsService implements Service {
         rules.get("/", this::listCoins).post("/insert", this::insertCoin)
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
-                .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice);
+                .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
+                .get("/queryTotalAmount",this::queryTotalAmount)
+                .get("/collectAllCash", this::collectAllCash);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
@@ -94,7 +96,7 @@ public class CoinsService implements Service {
         LOGGER.info("start viewing coins qty");
         String coinName = request.path().toString().replace("/viewCoinQty/", "");
         int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Coin Qty:", qty).build();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Coin Qty:", qty !=Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist").build();
         response.send(returnObject);
     }
 
@@ -120,6 +122,20 @@ public class CoinsService implements Service {
         String coinName = request.path().toString().replace("/viewCoinPrice/", "");
         double price = ControllerManageCoin.queryCoinPrice(this.productDao, coinName);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Coin Denomination:", price).build();
+        response.send(returnObject);
+    }
+
+    private void queryTotalAmount(ServerRequest request, ServerResponse response) {
+        LOGGER.info("start calculation all coins value");
+        float totalAMt = ControllerManageCoin.queryTotalAmount(this.productDao);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", totalAMt!=Float.MAX_VALUE ? String.valueOf(totalAMt) :"ERROR").build();
+        response.send(returnObject);
+    }
+
+    private void collectAllCash(ServerRequest request, ServerResponse response) {
+        LOGGER.info("start collecting all cash");
+        String totalAMt = ControllerManageCoin.collectAllCash(this.productDao);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Collected Cash (in cents):", totalAMt).build();
         response.send(returnObject);
     }
 

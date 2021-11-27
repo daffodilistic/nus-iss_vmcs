@@ -1,6 +1,7 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Collections;
@@ -29,6 +30,8 @@ public class ProductDAOImpl implements ProductDAO {
     public final String getDrinksPrice = "SELECT price FROM drinks where name = '%s'";
     public final String setDrinksPrice = "UPDATE drinks SET price = %s where name = '%s'";
     public final String getCoinsPrice = "SELECT denomination FROM coins where name = '%s'";
+    public final String getAllCoins = "SELECT denomination, quantity FROM coins";
+    public final String collectAllCoins = "UPDATE coins SET quantity = 0";
     private final DbClient dbClient;
 
     public ProductDAOImpl(DbClient dbClient) {
@@ -98,6 +101,37 @@ public class ProductDAOImpl implements ProductDAO {
             LOGGER.info(e.toString());
             return "NA";
         }
+    }
+
+    public List<JsonObject> getAllCoins(){
+        try {
+            String sql = this.getAllCoins;
+            LOGGER.info("getAllCoins full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            List<JsonObject> result = rows.get();
+            return result;
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return new ArrayList<JsonObject>();
+        }
+    }
+
+    public String collectAllCoins(){
+        try {
+            String sql = this.collectAllCoins;
+            LOGGER.info("collectAllCoins full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            if (sqlResponse.equals("0")){
+                return "SQL Statement update failed. Please see logs.";
+            }else{
+                return "Success";
+            }
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return "NA";
+        }
+
     }
 
 
