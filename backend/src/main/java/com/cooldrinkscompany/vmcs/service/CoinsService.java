@@ -31,11 +31,9 @@ public class CoinsService implements Service {
     private static final SessionManager SESSION_MANAGER = SessionManager.getInstance();
 
     private final ProductDAOImpl productDao;
-    private final Config config;
 
     public CoinsService(ProductDAOImpl productDao) {
         this.productDao = productDao;
-        this.config = Config.create();
     }
 
     @Override
@@ -47,8 +45,7 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
                 .get("/queryTotalAmount",this::queryTotalAmount)
-                .get("/collectAllCash", this::collectAllCash)
-                .post("/login", this::login);
+                .get("/collectAllCash", this::collectAllCash);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
@@ -98,43 +95,6 @@ public class CoinsService implements Service {
             list.forEach(arrayBuilder::add);
             JsonArray array = arrayBuilder.build();
             response.send(Json.createObjectBuilder().add("coins", array).build());
-        });
-    }
-
-    private boolean validatePassword(String inputPassword){
-        String realPassword = this.config.get("password").asMap().get().get("password");
-        if (inputPassword.equals(realPassword)){
-            return true;
-        }
-        return false;
-    }
-
-    private void login(ServerRequest request, ServerResponse response){
-        request.content().as(JsonObject.class).thenAccept(json -> {
-            String inputPassword = json.getString("password", null);
-            if(validatePassword(inputPassword)){
-                String loginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status",loginResponse).build();
-                response.send(returnObject);
-            }else{
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status", "Failed to login with password " + inputPassword).build();
-                response.send(returnObject);
-            }
-        }).exceptionally(e -> {
-            LOGGER.info("[login] Exception: " + e.getMessage());
-            e.printStackTrace();
-
-            StringWriter stackTrace = new StringWriter();
-            e.printStackTrace(new PrintWriter(stackTrace));
-
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("error", "Failed login!");
-            data.put("reason", e.toString());
-
-            // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
-
-            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
-            return null;
         });
     }
 

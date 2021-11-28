@@ -3,8 +3,8 @@ package com.cooldrinkscompany.vmcs;
 
 import com.cooldrinkscompany.vmcs.factory.VendingMachineSnapshotFactory;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
-import com.cooldrinkscompany.vmcs.pojo.SessionManager;
 
+import com.cooldrinkscompany.vmcs.service.SystemService;
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
@@ -112,6 +112,7 @@ public final class Main {
                 .register("/websocket", new WebSocketService())
                 .register("/drinks", defaultCorsSupport(null), new DrinksService(productDao))
                 .register("/coins", defaultCorsSupport(null), new CoinsService(productDao))
+                .register("/system", defaultCorsSupport(null), new SystemService(productDao))
                 .build();
     }
 
