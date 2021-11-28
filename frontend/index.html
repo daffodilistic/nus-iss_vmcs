@@ -188,7 +188,7 @@
         insertCoin(coinData) {
           // console.log("Coin inserted!", JSON.stringify(coinData));
 
-          const requestUrl = `//${SERVER_HOST}/coins/insert`;
+          let requestUrl = `//${SERVER_HOST}/coins/insert`;
           if (this.sessionId) {
             requestUrl += `?sessionId=${this.sessionId}`;
           }
