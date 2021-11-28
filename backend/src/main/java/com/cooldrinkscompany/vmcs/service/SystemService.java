@@ -1,6 +1,10 @@
 package com.cooldrinkscompany.vmcs.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 //import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +17,8 @@ import javax.json.JsonObject;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.google.gson.Gson;
+
 import io.helidon.common.reactive.Multi;
 import io.helidon.config.Config;
 import io.helidon.webserver.*;
