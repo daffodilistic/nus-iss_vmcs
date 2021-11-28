@@ -26,16 +26,18 @@ public final class Session {
         this.coins.add(coin);
     }
 
-    public void save() {
-    }
-
     public void addCoin(InsertCoin coin) {
+        boolean found = false;
         for (InsertCoin c : coins) {
             if (c.value == coin.value) {
                 c.quantity += 1;
+                found = true;
                 break;
             }
         }
-        coins.add(coin);
+        if (!found) {
+            coin.quantity += 1;
+            this.coins.add(coin);
+        }
     }
 }
