@@ -3,16 +3,50 @@ package com.cooldrinkscompany.vmcs.controller;
 import com.cooldrinkscompany.vmcs.iterator.CoinIterator;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 
+import javax.json.JsonObject;
 import java.util.logging.Logger;
 
 public class ControllerManageCoin {
 
-    private CoinIterator createIterator(){
-        return null;
+    private static CoinIterator createIterator(ProductDAOImpl dao){
+        return new CoinIterator(dao);
     }
 
-    public static float queryTolAmount(){
-        return 0.0f;
+    public static float queryTotalAmount(ProductDAOImpl dao){
+        Logger LOGGER = Logger.getLogger(ControllerManageCoin.class.getName());
+        CoinIterator coinIterator = createIterator(dao);
+        float total = 0.0f;
+        if (!coinIterator.first().equals(null)){
+            JsonObject coin = coinIterator.first();
+            float denomination = Float.parseFloat(coin.getJsonNumber("denomination").toString());
+            int quantity = Integer.parseInt(coin.getJsonNumber("quantity").toString());
+            LOGGER.info("Row is: " + " Denom: " + denomination + " Qty: " + quantity );
+            total += denomination*quantity;
+            while(!coinIterator.isDone()){
+                coin = coinIterator.next();
+                denomination = Float.parseFloat(coin.getJsonNumber("denomination").toString());
+                quantity = Integer.parseInt(coin.getJsonNumber("quantity").toString());
+                LOGGER.info("Row is: " + " Denom: " + denomination + " Qty: " + quantity );
+                total += denomination*quantity;
+            }
+            return total;
+        }
+        return Float.MAX_VALUE;
+    }
+
+    public static String collectAllCash(ProductDAOImpl dao){
+        float totalCash = queryTotalAmount(dao);
+        if (totalCash == Float.MAX_VALUE){
+            return "Collection failed. Total cash cannot be calculated.";
+        }else{
+            String response = dao.collectAllCoins();
+            if (response.equals("Success")){
+                return String.valueOf(totalCash);
+            }else{
+                return response;
+            }
+
+        }
     }
 
     private static String validateQty(String quantity){
