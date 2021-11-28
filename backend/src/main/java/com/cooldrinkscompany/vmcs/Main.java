@@ -2,6 +2,7 @@
 package com.cooldrinkscompany.vmcs;
 
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.cooldrinkscompany.vmcs.service.SystemService;
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
@@ -96,6 +97,7 @@ public final class Main {
                 .register("/greet", greetService)
                 .register("/drinks", new DrinksService(productDao))
                 .register("/coins", new CoinsService(productDao))
+                .register("/system", new SystemService(productDao))
                 .build();
     }
 }
