@@ -58,6 +58,16 @@ public class ProductDAOImpl implements ProductDAO {
             LOGGER.log(Level.WARNING, "Failed to create system table, maybe it already exists?", throwable);
             return null;
         });
+        // Seed SystemStatus Table
+        dbClient.execute(handle -> handle
+                .createInsert(
+                "INSERT INTO public.system (id, name, status) VALUES (1,'isLoggedIn',FALSE) ON CONFLICT DO UPDATE;" + 
+                "INSERT INTO public.system (id, name, status) VALUES (2,'isUnlocked',FALSE) ON CONFLICT DO UPDATE;")
+                .execute())
+                .thenAccept(System.out::println).exceptionally(throwable -> {
+            LOGGER.log(Level.WARNING, "Failed to seed system table!", throwable);
+            return null;
+        });
     }
 
     public DbClient getDbClient() {
