@@ -1,7 +1,9 @@
 package com.cooldrinkscompany.vmcs.iterator;
 
+import javax.json.JsonObject;
+
 public interface AbstractProductIterator {
-    public Object first();
-    public Object next();
+    public JsonObject first();
+    public JsonObject next();
     public boolean isDone();
 }
