@@ -62,8 +62,8 @@ public class ProductDAOImpl implements ProductDAO {
         // Seed SystemStatus Table
         dbClient.execute(handle -> handle
                 .createInsert(
-                "INSERT INTO public.system (id, name, status) VALUES (1,'isLoggedIn',FALSE) ON CONFLICT DO UPDATE;" + 
-                "INSERT INTO public.system (id, name, status) VALUES (2,'isUnlocked',FALSE) ON CONFLICT DO UPDATE;")
+                "INSERT INTO public.system AS settings (id, name, status) VALUES (1,'isLoggedIn',FALSE) ON CONFLICT (id) DO UPDATE SET status = FALSE WHERE settings.id = 1;" + 
+                "INSERT INTO public.system AS settings (id, name, status) VALUES (2,'isUnlocked',FALSE) ON CONFLICT (id) DO UPDATE SET status = FALSE WHERE settings.id = 2;")
                 .execute())
                 .thenAccept(System.out::println).exceptionally(throwable -> {
             LOGGER.log(Level.WARNING, "Failed to seed system table!", throwable);
