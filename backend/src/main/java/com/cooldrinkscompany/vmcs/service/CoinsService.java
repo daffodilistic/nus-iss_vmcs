@@ -14,13 +14,14 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
 import com.cooldrinkscompany.vmcs.pojo.Coin;
+import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.Session;
 import com.cooldrinkscompany.vmcs.pojo.SessionManager;
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
 
 import io.helidon.common.reactive.Multi;
+import io.helidon.config.Config;
 import io.helidon.webserver.*;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageCoin;
 
@@ -30,9 +31,11 @@ public class CoinsService implements Service {
     private static final SessionManager SESSION_MANAGER = SessionManager.getInstance();
 
     private final ProductDAOImpl productDao;
+    private final Config config;
 
     public CoinsService(ProductDAOImpl productDao) {
         this.productDao = productDao;
+        this.config = Config.create();
     }
 
     @Override
@@ -44,7 +47,8 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
                 .get("/queryTotalAmount",this::queryTotalAmount)
-                .get("/collectAllCash", this::collectAllCash);
+                .get("/collectAllCash", this::collectAllCash)
+                .get("/loggin/*", this::loggin);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
@@ -97,6 +101,26 @@ public class CoinsService implements Service {
         });
     }
 
+    private boolean validatePassword(String inputPassword){
+        String realPassword = this.config.get("password").asMap().get().get("password");
+        if (inputPassword.equals(realPassword)){
+            return true;
+        }
+        return false;
+    }
+
+    private void loggin(ServerRequest request, ServerResponse response){
+        String inputPassword = request.path().toString().replace("/loggin/", "");
+        if(validatePassword(inputPassword)){
+            String logginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:",logginResponse).build();
+            response.send(returnObject);
+        }else{
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", "Failed to loggin with password: " + inputPassword).build();
+            response.send(returnObject);
+        }
+    }
+
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
         String coinName = request.path().toString().replace("/viewCoinQty/", "");
@@ -132,16 +156,27 @@ public class CoinsService implements Service {
 
     private void queryTotalAmount(ServerRequest request, ServerResponse response) {
         LOGGER.info("start calculation all coins value");
-        float totalAMt = ControllerManageCoin.queryTotalAmount(this.productDao);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", totalAMt!=Float.MAX_VALUE ? String.valueOf(totalAMt) :"ERROR").build();
-        response.send(returnObject);
+        if(ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn") && ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
+            float totalAMt = ControllerManageCoin.queryTotalAmount(this.productDao);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", totalAMt!=Float.MAX_VALUE ? String.valueOf(totalAMt) :"ERROR").build();
+            response.send(returnObject);
+        }else{
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", "System is currently locked. Please login and unlock door first.").build();
+            response.send(returnObject);
+        }
     }
 
     private void collectAllCash(ServerRequest request, ServerResponse response) {
         LOGGER.info("start collecting all cash");
-        String totalAMt = ControllerManageCoin.collectAllCash(this.productDao);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Collected Cash (in cents):", totalAMt).build();
-        response.send(returnObject);
+        if(ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn") && ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
+            String totalAMt = ControllerManageCoin.collectAllCash(this.productDao);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Collected Cash (in cents):", totalAMt).build();
+            response.send(returnObject);
+        }else{
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", "System is currently locked. Please login and unlock door first.").build();
+            response.send(returnObject);
+        }
+
     }
 
     public class InsertCoin {

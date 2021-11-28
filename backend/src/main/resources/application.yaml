@@ -13,3 +13,5 @@ db:
     password: "vmcs"
   statements:
     select-all: "SELECT * FROM drinks"
+
+password: "iamadmin"
