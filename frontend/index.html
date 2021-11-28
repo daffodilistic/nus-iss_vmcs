@@ -182,7 +182,7 @@
           axios.get(`//${SERVER_HOST}/drinks`)
             .then(response => {
               // console.log(response);
-              this.drinks = response.data.drinks;
+              this.drinks = response.data;
             })
             .catch(error => {
               console.log(error);
