@@ -58,15 +58,15 @@ public class CoinsService implements Service {
             // Deserialize incoming JSON into a Java InsertCoin object
             Gson gson = new Gson();
             InsertCoin coin = gson.fromJson(json.toString(), InsertCoin.class);
-            LOGGER.info(gson.toJson(coin));
+            // LOGGER.info(gson.toJson(coin));
             if (isExistingSession) {
                 // Update coins for existing session
-                LOGGER.info("[insertCoin] existing session");
+                // LOGGER.info("[insertCoin] existing session");
                 String sessionId = request.queryParams().first("sessionId").get();
                 Session session = SESSION_MANAGER.updateSession(sessionId, coin);
                 response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             } else {
-                LOGGER.info("[insertCoin] new session");
+                // LOGGER.info("[insertCoin] new session");
                 // Setup a new session for the request
                 Session session = SESSION_MANAGER.createSession(coin);
                 response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
