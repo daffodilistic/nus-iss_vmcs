@@ -43,7 +43,7 @@ public class SystemService implements Service {
     public void update(Routing.Rules rules) {
 
         rules
-        .get(PathMatcher.create("/login"), this::login)
+        .post(PathMatcher.create("/login"), this::login)
         .get(PathMatcher.create("/logout"), this::logout)
         .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
         .get(PathMatcher.create("/lockDoor"), this::lockDoor);
