@@ -7,4 +7,9 @@ public abstract class Product {
     protected String name;
     protected int quantity = 0;
     protected double price = 0.0d;
+
+    public void getName(int _id)
+    {
+        System.out.println("get name");
+    }
 }

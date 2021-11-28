@@ -1,6 +1,6 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
-public final class Coin {
+public final class Coin extends Product {
     private int id;
     private String name;
     private int quantity;
@@ -26,7 +26,7 @@ public final class Coin {
     // }
 
     public final String getName() {
-        return name;
+        return "Coin:" + name;
     }
 
     public final void setName(String name) {

@@ -24,7 +24,7 @@ public final class Drink extends Product {
     // }
 
     public final String getName() {
-        return name;
+        return "Drink" + name;
     }
 
     public final void setName(String name) {
