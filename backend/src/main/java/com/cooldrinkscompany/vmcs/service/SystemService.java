@@ -1,6 +1,10 @@
 package com.cooldrinkscompany.vmcs.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 //import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,6 +17,8 @@ import javax.json.JsonObject;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.google.gson.Gson;
+
 import io.helidon.common.reactive.Multi;
 import io.helidon.config.Config;
 import io.helidon.webserver.*;
@@ -37,7 +43,7 @@ public class SystemService implements Service {
     public void update(Routing.Rules rules) {
 
         rules
-        .get(PathMatcher.create("/login/*"), this::login)
+        .get(PathMatcher.create("/login"), this::login)
         .get(PathMatcher.create("/logout"), this::logout)
         .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
         .get(PathMatcher.create("/lockDoor"), this::lockDoor)
@@ -53,15 +59,32 @@ public class SystemService implements Service {
     }
 
     private void login(ServerRequest request, ServerResponse response){
-        String inputPassword = request.path().toString().replace("/login/", "");
-        if(validatePassword(inputPassword)){
-            String logginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:",logginResponse).build();
-            response.send(returnObject);
-        }else{
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", "Failed to loggin with password: " + inputPassword).build();
-            response.send(returnObject);
-        }
+        request.content().as(JsonObject.class).thenAccept(json -> {
+            String inputPassword = json.getString("password", null);
+            if(validatePassword(inputPassword)){
+                String loginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status",loginResponse).build();
+                response.send(returnObject);
+            }else{
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status", "Failed to login with password " + inputPassword).build();
+                response.send(returnObject);
+            }
+        }).exceptionally(e -> {
+            LOGGER.info("[login] Exception: " + e.getMessage());
+            e.printStackTrace();
+
+            StringWriter stackTrace = new StringWriter();
+            e.printStackTrace(new PrintWriter(stackTrace));
+
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Failed login!");
+            data.put("reason", e.toString());
+
+            // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
+
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+            return null;
+        });
     }
 
     private void logout(ServerRequest request, ServerResponse response){

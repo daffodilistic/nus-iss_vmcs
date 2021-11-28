@@ -4,7 +4,7 @@ public final class Coin {
     private int id;
     private String name;
     private int quantity;
-    private double price = 0.0d;
+    private double denomination = 0.0d;
 
     public Coin() {
         // empty constructor required for JSON-B (JSR 367)
@@ -14,7 +14,7 @@ public final class Coin {
         this.id = id;
         this.name = name;
         this.quantity = quantity;
-        this.price = price;
+        this.denomination = price;
     }
 
     public final int getId() {
@@ -34,11 +34,11 @@ public final class Coin {
     }
 
     public final double getPrice() {
-        return price;
+        return denomination;
     }
 
     public final void setPrice(double price) {
-        this.price = price;
+        this.denomination = price;
     }
 
     public final int getQuantity() {

@@ -4,7 +4,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- VueJS framework -->
+  <script src="https://unpkg.com/vue"></script>
+  <!-- Buefy framework -->
   <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css">
+  <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+  <!-- Axios framework -->
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -33,6 +39,11 @@
           </template>
           <div class="panel-block">
             <div class="container is-fluid">
+              <code>{{ wsData }}</code>
+            </div>
+          </div>
+          <div class="panel-block">
+            <div class="container is-fluid">
               <h3 class="title has-text-centered">Insert Coins</h3>
             </div>
           </div>
@@ -40,47 +51,61 @@
             <div class="columns container is-centered">
               <template v-for="(coin, index) in coins">
                 <div class="column is-narrow">
-                  <button v-if="coin.country === 'SG'" class="button is-info">{{ coin.name }}</button>
-                  <button v-if="coin.country === 'BN'" class="button is-danger">{{ coin.name }}</button>
+                  <button v-if="coin.country === 'SG'" v-on:click="insertCoin(coin)" class="button is-info">{{ coin.name
+                    }}</button>
+                  <button v-if="coin.country === 'BN'" v-on:click="insertCoin(coin)" class="button is-danger">{{
+                    coin.name
+                    }}</button>
                 </div>
               </template>
             </div>
           </div>
           <div class="panel-block">
             <div class="columns is-centered">
-              <div class="column is-narrow">
-                <div class="card">
-                  <div class="card-content">
-                    <p class="title">
-                      Pepsi
-                    </p>
-                    <p class="subtitle">
-                      $1.10
-                    </p>
+              <template v-for="(drink, index) in drinks">
+                <div class="column is-narrow" :key="index">
+                  <div class="card">
+                    <div class="card-content">
+                      <p class="title">
+                        {{ drink.name }}
+                      </p>
+                      <p class="subtitle">
+                        {{ '$' + Number(drink.price).toFixed(2) }}
+                      </p>
+                    </div>
+                    <footer class="card-footer">
+                      <p class="card-footer-item">
+                        <span>
+                          <template v-if="drink.quantity == 0">
+                            <b-button disabled type="is-fullwidth is-rounded is-primary">OOS
+                            </b-button>
+                          </template>
+                          <template v-else>
+                            <b-button type="is-fullwidth is-rounded is-primary">Buy
+                            </b-button>
+                          </template>
+                        </span>
+                      </p>
+                    </footer>
                   </div>
-                  <footer class="card-footer">
-                    <p class="card-footer-item">
-                      <span>
-                        <b-button type="is-fullwidth is-rounded is-primary">Buy</b-button>
-                      </span>
-                    </p>
-                  </footer>
                 </div>
-              </div>
+              </template>
             </div>
           </div>
         </b-collapse>
-        <b-collapse class="panel is-warning" animation="slide" :open=false>
+        <b-collapse class="panel is-warning" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
               <b>Maintainer Panel</b>
             </div>
           </template>
           <div class="panel-block">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-            Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-            <br />
-            Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <button v-on:click="collectCoins()" class="button is-info">Collect Coins</button>
+                <button v-on:click="showTotalAmount()" class="button is-info">Show Total Amount</button>
+              </div>
+            </div>
           </div>
         </b-collapse>
         <b-collapse class="panel is-danger" animation="slide" :open=false>
@@ -99,22 +124,22 @@
       </section>
     </div>
   </div>
-
-  <script src="https://unpkg.com/vue"></script>
-  <!-- Full bundle -->
-  <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
-
-  <!-- Individual components -->
-  <script src="https://unpkg.com/buefy/dist/components/table"></script>
-  <script src="https://unpkg.com/buefy/dist/components/input"></script>
-
   <script>
+    const SERVER_HOST = 'localhost:8080';
+
     new Vue({
       el: '#app',
+      computed: {
+
+      },
       data() {
         return {
+          sessionId: null,
+          wsData: null,
+          wsConnection: null,
           isSwitchedOn: "Off",
-          coins: [
+          drinks: [],
+          coins: Object.freeze([
             {
               name: "S$0.05",
               country: "SG",
@@ -145,7 +170,52 @@
               country: "BN",
               value: 100
             },
-          ]
+          ])
+        }
+      },
+      mounted() {
+        this.initWebSocket();
+        this.getDrinksList();
+      },
+      methods: {
+        getDrinksList() {
+          axios.get(`//${SERVER_HOST}/drinks`)
+            .then(response => {
+              // console.log(response);
+              this.drinks = response.data.drinks;
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        },
+        initWebSocket() {
+          console.log("initWebSocket");
+          this.wsConnection = new WebSocket(`ws://${SERVER_HOST}/websocket/${this.sessionId ?? ''}`);
+          this.wsConnection.onmessage = (event) => {
+            console.log("[WebSocket] Incoming data:", event.data);
+            this.wsData = event.data;
+          }
+        },
+        insertCoin(coinData) {
+          // console.log("Coin inserted!", JSON.stringify(coinData));
+
+          let requestUrl = `//${SERVER_HOST}/coins/insert`;
+          if (this.sessionId) {
+            requestUrl += `?sessionId=${this.sessionId}`;
+          }
+
+          axios.post(requestUrl, coinData)
+            .then((response) => {
+              console.log(response.data);
+              if (this.sessionId === null) {
+                this.sessionId = response.data.sessionId;
+                this.wsConnection.close();
+                this.initWebSocket();
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         }
       }
     })

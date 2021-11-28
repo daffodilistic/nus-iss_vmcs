@@ -14,6 +14,7 @@ import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
+import com.cooldrinkscompany.vmcs.pojo.InsertCoin;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.Session;
 import com.cooldrinkscompany.vmcs.pojo.SessionManager;
@@ -37,7 +38,9 @@ public class CoinsService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-        rules.get("/", this::listCoins).post("/insert", this::insertCoin)
+        rules
+                .get("/", this::listCoins)
+                .post("/insert", this::insertCoin)
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
@@ -52,30 +55,32 @@ public class CoinsService implements Service {
             // Deserialize incoming JSON into a Java InsertCoin object
             Gson gson = new Gson();
             InsertCoin coin = gson.fromJson(json.toString(), InsertCoin.class);
-            LOGGER.info(gson.toJson(coin));
-            // TODO: check for sessionID in URL query parameter, and either
-            // initialize a new session or update existing session
+            // LOGGER.info(gson.toJson(coin));
             if (isExistingSession) {
-                
+                // Update coins for existing session
+                // LOGGER.info("[insertCoin] existing session");
+                String sessionId = request.queryParams().first("sessionId").get();
+                Session session = SESSION_MANAGER.updateSession(sessionId, coin);
+                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             } else {
+                // LOGGER.info("[insertCoin] new session");
                 // Setup a new session for the request
                 Session session = SESSION_MANAGER.createSession(coin);
-                
+                response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             }
-            response.send(coin);
         }).exceptionally(e -> {
             LOGGER.info("[insertCoin] Exception: " + e.getMessage());
-            // e.printStackTrace();
-            
+            e.printStackTrace();
+
             StringWriter stackTrace = new StringWriter();
             e.printStackTrace(new PrintWriter(stackTrace));
 
             Map<String, Object> data = new HashMap<String, Object>();
-            data.put("error", e.getMessage());
-            // data.put("stacktrace", stackTrace.toString());
-            
+            data.put("error", "Invalid coin!");
+            data.put("reason", e.toString());
+
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
-            
+
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
             return null;
         });
@@ -92,7 +97,6 @@ public class CoinsService implements Service {
             response.send(Json.createObjectBuilder().add("coins", array).build());
         });
     }
-
 
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
@@ -150,19 +154,5 @@ public class CoinsService implements Service {
             response.send(returnObject);
         }
 
-    }
-
-    public class InsertCoin {
-        public String name;
-        public String country;
-        public int value;
-        public int quantity;
-
-        public InsertCoin(String name, String country, int value, int quantity) {
-            this.name = name;
-            this.country = country;
-            this.value = value;
-            this.quantity = quantity;
-        }
     }
 }
