@@ -60,4 +60,15 @@ public final class SessionManager {
         LOGGER.info(new Gson().toJson(sessions));
         return session;
     }
+
+    public Session getSession(String sessionId) {
+        Session session = null;
+        for (Session s : sessions) {
+            if (s.sessionId.toString().equals(sessionId)) {
+                session = s;
+                break;
+            }
+        }
+        return session;
+    }
 }
