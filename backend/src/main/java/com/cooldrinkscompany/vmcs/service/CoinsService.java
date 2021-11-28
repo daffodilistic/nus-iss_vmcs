@@ -48,7 +48,7 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
                 .get("/queryTotalAmount",this::queryTotalAmount)
                 .get("/collectAllCash", this::collectAllCash)
-                .get("/loggin/*", this::loggin);
+                .post("/login", this::login);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
@@ -109,16 +109,33 @@ public class CoinsService implements Service {
         return false;
     }
 
-    private void loggin(ServerRequest request, ServerResponse response){
-        String inputPassword = request.path().toString().replace("/loggin/", "");
-        if(validatePassword(inputPassword)){
-            String logginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:",logginResponse).build();
-            response.send(returnObject);
-        }else{
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", "Failed to loggin with password: " + inputPassword).build();
-            response.send(returnObject);
-        }
+    private void login(ServerRequest request, ServerResponse response){
+        request.content().as(JsonObject.class).thenAccept(json -> {
+            String inputPassword = json.getString("password", null);
+            if(validatePassword(inputPassword)){
+                String loginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status",loginResponse).build();
+                response.send(returnObject);
+            }else{
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status", "Failed to login with password " + inputPassword).build();
+                response.send(returnObject);
+            }
+        }).exceptionally(e -> {
+            LOGGER.info("[login] Exception: " + e.getMessage());
+            e.printStackTrace();
+
+            StringWriter stackTrace = new StringWriter();
+            e.printStackTrace(new PrintWriter(stackTrace));
+
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Failed login!");
+            data.put("reason", e.toString());
+
+            // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
+
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+            return null;
+        });
     }
 
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
