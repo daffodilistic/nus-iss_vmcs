@@ -1,6 +1,7 @@
 package com.cooldrinkscompany.vmcs.service;
 
 import java.util.Collections;
+import java.util.List;
 //import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,20 +48,13 @@ public class DrinksService implements Service {
     }
 
     private void listDrinks(ServerRequest request, ServerResponse response) {
-        Multi<JsonObject> rows = this.productDao.getDbClient()
-                .execute(exec -> exec.createQuery("SELECT * FROM drinks").execute())
-                .map(it -> it.as(JsonObject.class));
-
-        rows.collectList().thenAccept(list -> {
-            JsonArrayBuilder arrayBuilder = JSON_FACTORY.createArrayBuilder();
-            list.forEach(arrayBuilder::add);
-            JsonArray array = arrayBuilder.build();
-            response.send(Json.createObjectBuilder().add("drinks", array).build());
-        }).exceptionally(e -> {
-            LOGGER.info("[listDrinks] Exception: " + e.getMessage());
-            response.send("ERROR");
-            return null;
-        });
+        List<JsonObject> drinks = this.productDao.getAllDrinks();
+        JsonArrayBuilder drinksBuilder = JSON_FACTORY.createArrayBuilder();
+        for (JsonObject drink : drinks) {
+            drinksBuilder.add(drink);
+        }
+        JsonArray drinksArray = drinksBuilder.build();
+        response.send(drinksArray);
     }
 
     private void viewDrinkQty(ServerRequest request, ServerResponse response) {
