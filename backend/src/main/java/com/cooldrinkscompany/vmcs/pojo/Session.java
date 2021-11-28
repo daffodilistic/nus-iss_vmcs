@@ -1,11 +1,7 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-
-import com.cooldrinkscompany.endpoint.MessageQueue;
-import com.cooldrinkscompany.vmcs.service.CoinsService.InsertCoin;
 
 public final class Session {
     public transient int id;
