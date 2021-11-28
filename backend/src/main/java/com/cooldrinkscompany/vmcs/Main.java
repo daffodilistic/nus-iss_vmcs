@@ -1,7 +1,10 @@
 
 package com.cooldrinkscompany.vmcs;
 
+import com.cooldrinkscompany.vmcs.factory.VendingMachineSnapshotFactory;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.cooldrinkscompany.vmcs.pojo.SessionManager;
+
 import io.helidon.common.LogConfig;
 import io.helidon.common.reactive.Single;
 import io.helidon.config.Config;
@@ -24,7 +27,6 @@ import com.cooldrinkscompany.vmcs.service.CoinsService;
  * The application main class.
  */
 public final class Main {
-
     /**
      * Cannot be instantiated.
      */
@@ -82,6 +84,11 @@ public final class Main {
         return productDao;
     }
 
+    private static VendingMachineSnapshotFactory createSnapshotFactory(ProductDAOImpl productDao) {
+        VendingMachineSnapshotFactory factory = new VendingMachineSnapshotFactory(productDao);
+        return factory;
+    }
+
     /**
      * Creates new {@link Routing}.
      *
@@ -90,6 +97,7 @@ public final class Main {
      */
     private static Routing createRouting(Config config) {
         ProductDAOImpl productDao = createDao(config);
+        createSnapshotFactory(productDao);
 
         MetricsSupport metrics = MetricsSupport.create();
         GreetService greetService = new GreetService(config);

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.cooldrinkscompany.endpoint.MessageBoardEndpoint;
-import com.cooldrinkscompany.vmcs.service.CoinsService.InsertCoin;
+import com.cooldrinkscompany.vmcs.factory.VendingMachineSnapshotFactory;
 import com.google.gson.Gson;
 
 public final class SessionManager {
@@ -44,7 +44,8 @@ public final class SessionManager {
             if (s.sessionId.toString().equals(sessionId)) {
                 s.addCoin(coin);
                 session = s;
-                MessageBoardEndpoint.getInstance().sendMessage("Message sent! " + Timestamp.from(Instant.now()), session.sessionId.toString());
+                VendingMachineSnapshot snapshot = VendingMachineSnapshotFactory.getInstance().getSnapshot();
+                MessageBoardEndpoint.getInstance().sendMessage(new Gson().toJson(snapshot), session.sessionId.toString());
                 break;
             }
         }
