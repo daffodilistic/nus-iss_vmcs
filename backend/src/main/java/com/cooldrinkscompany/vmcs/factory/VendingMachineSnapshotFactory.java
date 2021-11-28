@@ -38,6 +38,9 @@ public final class VendingMachineSnapshotFactory {
         for (JsonObject coin : productDAO.getAllCoins()) {
             snapshot.coins.add(gson.fromJson(coin.toString(), Coin.class));
         }
+        for (JsonObject drink : productDAO.getAllDrinks()) {
+            snapshot.drinks.add(gson.fromJson(drink.toString(), Drink.class));
+        }
         return snapshot;
     }
 }
