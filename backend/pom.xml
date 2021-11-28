@@ -24,6 +24,10 @@
             <artifactId>helidon-webserver</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.helidon.webserver</groupId>
+            <artifactId>helidon-webserver-cors</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.helidon.media</groupId>
             <artifactId>helidon-media-jsonp</artifactId>
         </dependency>

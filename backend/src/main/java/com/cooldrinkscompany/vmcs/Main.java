@@ -12,6 +12,9 @@ import io.helidon.media.jsonp.JsonpSupport;
 import io.helidon.metrics.MetricsSupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
+import io.helidon.webserver.cors.CorsSupport;
+import io.helidon.webserver.cors.CrossOriginConfig;
+
 import com.cooldrinkscompany.vmcs.service.GreetService;
 import com.cooldrinkscompany.vmcs.service.WebSocketService;
 import com.cooldrinkscompany.vmcs.service.DrinksService;
@@ -30,6 +33,7 @@ public final class Main {
 
     /**
      * Application main entry point.
+     * 
      * @param args command line arguments.
      */
     public static void main(final String[] args) {
@@ -38,6 +42,7 @@ public final class Main {
 
     /**
      * Start the server.
+     * 
      * @return the created {@link WebServer} instance
      */
     static Single<WebServer> startServer() {
@@ -58,9 +63,9 @@ public final class Main {
         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.thenAccept(ws -> {
-                    System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
-                    ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
-                })
+            System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
+            ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
+        })
                 .exceptionallyAccept(t -> {
                     System.err.println("Startup failed: " + t.getMessage());
                     t.printStackTrace(System.err);
@@ -69,13 +74,14 @@ public final class Main {
         return webserver;
     }
 
-    private static ProductDAOImpl createDao(Config config){
+    private static ProductDAOImpl createDao(Config config) {
         Config dbConfig = config.get("db");
         DbClient dbClient = DbClient.builder(dbConfig)
                 .build();
         ProductDAOImpl productDao = new ProductDAOImpl(dbClient);
         return productDao;
     }
+
     /**
      * Creates new {@link Routing}.
      *
@@ -88,16 +94,24 @@ public final class Main {
         MetricsSupport metrics = MetricsSupport.create();
         GreetService greetService = new GreetService(config);
         HealthSupport health = HealthSupport.builder()
-                .addLiveness(HealthChecks.healthChecks())   // Adds a convenient set of checks
+                .addLiveness(HealthChecks.healthChecks()) // Adds a convenient set of checks
                 .build();
 
         return Routing.builder()
-                .register(health)                   // Health at "/health"
-                .register(metrics)                  // Metrics at "/metrics"
+                .register(health) // Health at "/health"
+                .register(metrics) // Metrics at "/metrics"
                 .register("/greet", greetService)
                 .register("/websocket", new WebSocketService())
-                .register("/drinks", new DrinksService(productDao))
-                .register("/coins", new CoinsService(productDao))
+                .register("/drinks", defaultCorsSupport(null), new DrinksService(productDao))
+                .register("/coins", defaultCorsSupport(null), new CoinsService(productDao))
                 .build();
+    }
+
+    private static CorsSupport defaultCorsSupport(Config config) {
+        CorsSupport.Builder corsBuilder = CorsSupport.builder();
+        // Default configuration, no CORS
+        corsBuilder.addCrossOrigin(CrossOriginConfig.create()).build();
+
+        return corsBuilder.build();
     }
 }
