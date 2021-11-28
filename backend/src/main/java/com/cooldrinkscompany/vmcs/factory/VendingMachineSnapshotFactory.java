@@ -9,6 +9,7 @@ import com.cooldrinkscompany.vmcs.pojo.Coin;
 import com.cooldrinkscompany.vmcs.pojo.Drink;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.VendingMachineSnapshot;
+import com.google.gson.Gson;
 
 public final class VendingMachineSnapshotFactory {
     private static final Logger LOGGER = Logger.getLogger(ProductDAOImpl.class.getName());
@@ -33,11 +34,10 @@ public final class VendingMachineSnapshotFactory {
 
     public VendingMachineSnapshot getSnapshot() {
         VendingMachineSnapshot snapshot = new VendingMachineSnapshot();
+        Gson gson = new Gson();
         for (JsonObject coin : productDAO.getAllCoins()) {
-            LOGGER.info(coin.toString());
-            // coin.toString();
+            snapshot.coins.add(gson.fromJson(coin.toString(), Coin.class));
         }
-        //snapshot.coins
         return snapshot;
     }
 }

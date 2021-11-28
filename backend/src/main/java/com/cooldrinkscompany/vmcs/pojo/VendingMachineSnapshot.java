@@ -1,9 +1,14 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class VendingMachineSnapshot {
-    public List<Drink> drinks;
-    public List<Coin> coins;
-    public boolean doorStatus;    
+    public ArrayList<Drink> drinks;
+    public ArrayList<Coin> coins;
+    public boolean isDoorLocked;    
+
+    public VendingMachineSnapshot() {
+        this.drinks = new ArrayList<Drink>();
+        this.coins = new ArrayList<Coin>();
+    }
 }
