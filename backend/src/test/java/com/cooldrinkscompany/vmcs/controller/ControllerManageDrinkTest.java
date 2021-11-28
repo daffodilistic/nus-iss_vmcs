@@ -4,8 +4,6 @@ import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,9 +50,34 @@ public class ControllerManageDrinkTest {
     }
 
     @Test
-    void testSetDrinkQty() {
-        when(mockDao.setDrinkQuantity("Fanta", "5")).thenReturn("5");
-        String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "5");
-        assertEquals("5", actualVal);
+    void testSetDrinkQty_1() {
+        when(mockDao.setDrinkQuantity("Fanta", "21")).thenReturn("21");
+        String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "21");
+        assertEquals("Quantity cannot less than 0 or greater than 20", actualVal);
+
+        when(mockDao.setDrinkQuantity("Fanta", "-1")).thenReturn("-1");
+        String actualVal_2 = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "-1");
+        assertEquals("Quantity cannot less than 0 or greater than 20", actualVal_2);
+    }
+
+    @Test
+    void testSetDrinkQty_2() {
+        when(mockDao.setDrinkQuantity("Fanta", "0.1")).thenReturn("0.1");
+        String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "0.1");
+        assertEquals("Failed. Input qty cannot convert to integer.", actualVal);
+    }
+
+    @Test
+    void testSetDrinkQty_3() {
+        when(mockDao.setDrinkQuantity("Fanta", "20")).thenReturn("20");
+        String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "20");
+        assertEquals("20", actualVal);
+    }
+
+    @Test
+    void testSetDrinkQty_4() {
+        when(mockDao.setDrinkQuantity("Fanta", "0")).thenReturn("0");
+        String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "0");
+        assertEquals("0", actualVal);
     }
 }
