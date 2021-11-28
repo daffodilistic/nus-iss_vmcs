@@ -1,6 +1,5 @@
 package com.cooldrinkscompany.vmcs.iterator;
 
-import com.cooldrinkscompany.vmcs.controller.ControllerManageCoin;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 
 import javax.json.JsonObject;
@@ -8,8 +7,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class CoinIterator implements AbstractProductIterator{
-    private Logger LOGGER = Logger.getLogger(CoinIterator.class.getName());
-    private List<JsonObject> allCoins;
+    private final Logger LOGGER = Logger.getLogger(CoinIterator.class.getName());
+    private final List<JsonObject> allCoins;
     JsonObject currObj;
     int head;
 
@@ -36,11 +35,7 @@ public class CoinIterator implements AbstractProductIterator{
     }
 
     public boolean isDone() {
-        if(this.head == allCoins.size() - 1){
-            return true;
-        }else{
-            return false;
-        }
+        return this.head == allCoins.size() - 1;
     }
 
 }

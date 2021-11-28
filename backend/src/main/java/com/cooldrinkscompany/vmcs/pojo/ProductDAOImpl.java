@@ -4,13 +4,9 @@ package com.cooldrinkscompany.vmcs.pojo;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.json.Json;
-
-import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
 import io.helidon.common.reactive.Single;
@@ -20,9 +16,9 @@ import io.helidon.dbclient.DbClient;
 public class ProductDAOImpl implements ProductDAO {
 
     private static final Logger LOGGER = Logger.getLogger(ProductDAOImpl.class.getName());
-    private static final JsonBuilderFactory JSON_FACTORY = Json.createBuilderFactory(Collections.emptyMap());
     public final String createDrinksTable = "CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL, price FLOAT, quantity INT)";
     public final String createCoinsTable = "CREATE TABLE public.coins (id SERIAL PRIMARY KEY, name VARCHAR NULL, denomination FLOAT, quantity INT)";
+    public final String createSystemTable = "CREATE TABLE public.system (id SERIAL PRIMARY KEY, name VARCHAR NULL, status BOOLEAN)";
     public final String getCoinsQty = "SELECT quantity FROM coins where name = '%s'";
     public final String setCoinsQty = "UPDATE coins SET quantity = %s where name = '%s'";
     public final String getDrinksQty = "SELECT quantity FROM drinks where name = '%s'";
@@ -32,6 +28,8 @@ public class ProductDAOImpl implements ProductDAO {
     public final String getCoinsPrice = "SELECT denomination FROM coins where name = '%s'";
     public final String getAllCoins = "SELECT denomination, quantity FROM coins";
     public final String collectAllCoins = "UPDATE coins SET quantity = 0";
+    public final String setStatus = "UPDATE system SET status = %s where name = '%s'";
+    public final String getStatus = "SELECT status FROM system where name = '%s'";
     private final DbClient dbClient;
 
     public ProductDAOImpl(DbClient dbClient) {
@@ -50,6 +48,14 @@ public class ProductDAOImpl implements ProductDAO {
                 .createInsert(createCoinsTable).execute())
                 .thenAccept(System.out::println).exceptionally(throwable -> {
             LOGGER.log(Level.WARNING, "Failed to create coins table, maybe it already exists?", throwable);
+            return null;
+        });
+
+        // MySQL init SystemStatus Table
+        dbClient.execute(handle -> handle
+                .createInsert(createSystemTable).execute())
+                .thenAccept(System.out::println).exceptionally(throwable -> {
+            LOGGER.log(Level.WARNING, "Failed to create system table, maybe it already exists?", throwable);
             return null;
         });
     }
@@ -113,7 +119,7 @@ public class ProductDAOImpl implements ProductDAO {
             return result;
         }catch (Exception e){
             LOGGER.info(e.toString());
-            return new ArrayList<JsonObject>();
+            return new ArrayList<>();
         }
     }
 
@@ -199,6 +205,34 @@ public class ProductDAOImpl implements ProductDAO {
         } catch (Exception e){
             LOGGER.info(e.toString());
             return "Failed. Unexpected error, please check log.";
+        }
+    }
+    public String setStatus(String name, boolean status){
+        try {
+            String sql = String.format(this.setStatus, status, name);
+            LOGGER.info("setStatus full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            if (sqlResponse.equals("0")){
+                return "SQL Statement update failed.";
+            }else {
+                return "Success";
+            }
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return "NA";
+        }
+    }
+    public boolean getStatus(String name){
+        try {
+            String sql = String.format(this.getStatus,name);
+            LOGGER.info("getSystemStatus full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getBoolean("status");
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return false;
         }
     }
 
