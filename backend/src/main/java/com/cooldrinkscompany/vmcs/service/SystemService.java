@@ -40,7 +40,8 @@ public class SystemService implements Service {
         .get(PathMatcher.create("/login/*"), this::login)
         .get(PathMatcher.create("/logout"), this::logout)
         .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
-        .get(PathMatcher.create("/lockDoor"), this::lockDoor);
+        .get(PathMatcher.create("/lockDoor"), this::lockDoor)
+        .get(PathMatcher.create("/unlockDoor"), this::unlockDoor);
     }
 
     private boolean validatePassword(String inputPassword){
@@ -83,6 +84,12 @@ public class SystemService implements Service {
     private void lockDoor(ServerRequest request, ServerResponse response){
         String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", false);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", lockDoorResponse.equals("Success") ? "Door locked" : "Lock Failed").build();
+        response.send(returnObject);
+    }
+
+    private void unlockDoor(ServerRequest request, ServerResponse response){
+        String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", true);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", lockDoorResponse.equals("Success") ? "Door unlocked" : "Unlock Failed").build();
         response.send(returnObject);
     }
 
