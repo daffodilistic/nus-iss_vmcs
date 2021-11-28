@@ -127,6 +127,7 @@
         return {
           sessionId: null,
           wsData: null,
+          wsConnection: null,
           isSwitchedOn: "Off",
           drinks: [],
           coins: Object.freeze([
@@ -179,8 +180,9 @@
             });
         },
         initWebSocket() {
-          let connection = new WebSocket(`ws://${SERVER_HOST}/websocket/${this.sessionId ?? ''}`);
-          connection.onmessage = (event) => {
+          console.log("initWebSocket");
+          this.wsConnection = new WebSocket(`ws://${SERVER_HOST}/websocket/${this.sessionId ?? ''}`);
+          this.wsConnection.onmessage = (event) => {
             console.log("[WebSocket] Incoming data:", event.data);
             this.wsData = event.data;
           }
@@ -195,8 +197,12 @@
 
           axios.post(requestUrl, coinData)
             .then((response) => {
-              this.sessionId = response.data.sessionId;
-              // console.log(response);
+              console.log(response.data);
+              if (this.sessionId === null) {
+                this.sessionId = response.data.sessionId;
+                this.wsConnection.close();
+                this.initWebSocket();
+              }
             })
             .catch((error) => {
               console.log(error);

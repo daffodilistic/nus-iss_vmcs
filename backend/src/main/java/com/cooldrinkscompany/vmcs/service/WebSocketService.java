@@ -17,11 +17,22 @@ public class WebSocketService implements Service {
 
     @Override
     public void update(Rules rules) {
+        ServerEndpointConfig serverConfig = ServerEndpointConfig.Builder
+                .create(MessageBoardEndpoint.class, "/{sessionId}")
+                .configurator(new CustomServerEndpointConfigurator())
+                .build();
+
         rules
-                .register("/websocket",
-                        TyrusSupport.builder().register(
-                                ServerEndpointConfig.Builder.create(MessageBoardEndpoint.class, "/{sessionId}")
-                                        .build())
+                .register("/",
+                        TyrusSupport.builder().register(serverConfig)
                                 .build());
+    }
+
+    public class CustomServerEndpointConfigurator extends ServerEndpointConfig.Configurator {
+        @Override
+        public <T> T getEndpointInstance(Class<T> endpointClass) {
+            // override the default behavior by providing a 'Singleton'
+            return (T) MessageBoardEndpoint.getInstance();
+        }
     }
 }

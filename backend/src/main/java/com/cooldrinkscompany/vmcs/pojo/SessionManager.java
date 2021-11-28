@@ -1,9 +1,12 @@
 package com.cooldrinkscompany.vmcs.pojo;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.cooldrinkscompany.endpoint.MessageBoardEndpoint;
 import com.cooldrinkscompany.vmcs.service.CoinsService.InsertCoin;
 import com.google.gson.Gson;
 
@@ -34,10 +37,14 @@ public final class SessionManager {
 
     public Session updateSession(String sessionId, InsertCoin coin) {
         Session session = null;
+        // LOGGER.info("[updateSession] Session ID is " + sessionId);
         for (Session s : sessions) {
-            if (s.sessionId == s.sessionId) {
+            // LOGGER.info("[updateSession] Existing session ID is " + s.sessionId.toString());
+            // LOGGER.info("[updateSession] Compare result: " + (s.sessionId.toString().equals(sessionId)));
+            if (s.sessionId.toString().equals(sessionId)) {
                 s.addCoin(coin);
                 session = s;
+                MessageBoardEndpoint.getInstance().sendMessage("Message sent! " + Timestamp.from(Instant.now()), session.sessionId.toString());
                 break;
             }
         }
