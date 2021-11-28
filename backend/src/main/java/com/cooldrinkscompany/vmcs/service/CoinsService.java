@@ -30,11 +30,9 @@ public class CoinsService implements Service {
     private static final SessionManager SESSION_MANAGER = SessionManager.getInstance();
 
     private final ProductDAOImpl productDao;
-    private final Config config;
 
     public CoinsService(ProductDAOImpl productDao) {
         this.productDao = productDao;
-        this.config = Config.create();
     }
 
     @Override
@@ -44,8 +42,7 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
                 .get("/queryTotalAmount",this::queryTotalAmount)
-                .get("/collectAllCash", this::collectAllCash)
-                .get("/loggin/*", this::loggin);
+                .get("/collectAllCash", this::collectAllCash);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
@@ -96,25 +93,6 @@ public class CoinsService implements Service {
         });
     }
 
-    private boolean validatePassword(String inputPassword){
-        String realPassword = this.config.get("password").asMap().get().get("password");
-        if (inputPassword.equals(realPassword)){
-            return true;
-        }
-        return false;
-    }
-
-    private void loggin(ServerRequest request, ServerResponse response){
-        String inputPassword = request.path().toString().replace("/loggin/", "");
-        if(validatePassword(inputPassword)){
-            String logginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:",logginResponse).build();
-            response.send(returnObject);
-        }else{
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", "Failed to loggin with password: " + inputPassword).build();
-            response.send(returnObject);
-        }
-    }
 
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
