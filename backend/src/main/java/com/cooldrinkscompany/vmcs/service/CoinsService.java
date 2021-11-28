@@ -13,8 +13,8 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
 
-import com.cooldrinkscompany.vmcs.pojo.Coin;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
+import com.cooldrinkscompany.vmcs.pojo.InsertCoin;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.Session;
 import com.cooldrinkscompany.vmcs.pojo.SessionManager;
@@ -177,23 +177,5 @@ public class CoinsService implements Service {
             response.send(returnObject);
         }
 
-    }
-
-    public class InsertCoin {
-        public String name;
-        public String country;
-        public int value;
-        public int quantity;
-
-        public InsertCoin(String name, String country, int value, int quantity) {
-            this.name = name;
-            this.country = country;
-            this.value = value;
-            this.quantity = quantity;
-        }
-
-        public Coin convertToCoin() {
-            return new Coin(-1, this.name, this.quantity, this.value);
-        }
     }
 }
