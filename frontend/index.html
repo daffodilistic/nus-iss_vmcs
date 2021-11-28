@@ -76,8 +76,14 @@
                     <footer class="card-footer">
                       <p class="card-footer-item">
                         <span>
-                          <b-button :disabled="drink.quantity == 0" type="is-fullwidth is-rounded is-primary">Buy
-                          </b-button>
+                          <template v-if="drink.quantity == 0">
+                            <b-button disabled type="is-fullwidth is-rounded is-primary">OOS
+                            </b-button>
+                          </template>
+                          <template v-else>
+                            <b-button type="is-fullwidth is-rounded is-primary">Buy
+                            </b-button>
+                          </template>
                         </span>
                       </p>
                     </footer>
