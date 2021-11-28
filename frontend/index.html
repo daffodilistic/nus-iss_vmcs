@@ -39,7 +39,7 @@
           </template>
           <div class="panel-block">
             <div class="container is-fluid">
-              <p>{{ wsData }}</p>
+              <code>{{ wsData }}</code>
             </div>
           </div>
           <div class="panel-block">
@@ -76,7 +76,8 @@
                     <footer class="card-footer">
                       <p class="card-footer-item">
                         <span>
-                          <b-button :disabled="drink.quantity == 0" type="is-fullwidth is-rounded is-primary">Buy</b-button>
+                          <b-button :disabled="drink.quantity == 0" type="is-fullwidth is-rounded is-primary">Buy
+                          </b-button>
                         </span>
                       </p>
                     </footer>
@@ -86,17 +87,19 @@
             </div>
           </div>
         </b-collapse>
-        <b-collapse class="panel is-warning" animation="slide" :open=false>
+        <b-collapse class="panel is-warning" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
               <b>Maintainer Panel</b>
             </div>
           </template>
           <div class="panel-block">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-            Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-            <br />
-            Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <button v-on:click="collectCoins()" class="button is-info">Collect Coins</button>
+                <button v-on:click="showTotalAmount()" class="button is-info">Show Total Amount</button>
+              </div>
+            </div>
           </div>
         </b-collapse>
         <b-collapse class="panel is-danger" animation="slide" :open=false>
