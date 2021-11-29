@@ -8,7 +8,7 @@ public class ControllerManageDrink {
         try{
             int qty = Integer.parseInt(quantity);
             if (qty<0 || qty>20){
-                return "Quantity cannot less than 0 or greater than 20";
+                return "Failed. Quantity cannot less than 0 or greater than 20";
             }
             return "Pass";
         }catch(NumberFormatException ne){
