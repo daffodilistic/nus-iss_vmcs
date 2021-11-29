@@ -158,7 +158,7 @@ public class CoinsService implements Service {
             builder.add("cash_out", cashOut);
             response.send(builder.build());
         } else {
-            builder.addNull("total_cash");
+            builder.addNull("cash_out");
             builder.add("message", "System is currently locked. Please login and unlock door first.");
             response.send(builder.build());
         }
