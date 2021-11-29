@@ -61,7 +61,7 @@ public class SystemService implements Service {
         request.content().as(JsonObject.class).thenAccept(json -> {
             String inputPassword = json.getString("password", null);
             boolean isValidLogin = validatePassword(inputPassword);
-            JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("status", isValidLogin);
+            JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("success", isValidLogin);
             if (isValidLogin) {
                 String loginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
                 JsonObject returnObject = builder.add("message", loginResponse).build();
