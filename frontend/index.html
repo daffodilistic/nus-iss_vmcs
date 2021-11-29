@@ -99,8 +99,8 @@
           <div class="panel-block">
             <div class="columns container is-centered">
               <div class="column is-narrow">
-                <b-field grouped label="Maintainer Login" label-position="on-border" >
-                  <b-input  type="password" v-model="password" password-reveal></b-input>
+                <b-field grouped label="Maintainer Login" label-position="on-border">
+                  <b-input type="password" v-model="password" password-reveal></b-input>
                   <button v-on:click="login()" class="button is-info">Login</button>
                 </b-field>
               </div>
@@ -204,30 +204,34 @@
         this.getDrinksList();
       },
       methods: {
+        getMachineStatus() {
+
+        },
         getMaintenancePanelEnabled() {
           return !(this.isLoggedIn && !this.isDoorLocked);
         },
         login() {
           console.log("Password is " + this.password);
-          this.isLoggedIn = true;
-          this.isDoorLocked = false;
-          // let requestUrl = `//${SERVER_HOST}/coins/insert`;
-          // if (this.sessionId) {
-          //   requestUrl += `?sessionId=${this.sessionId}`;
-          // }
+          let requestUrl = `//${SERVER_HOST}/system/login`;
 
-          // axios.post(requestUrl, coinData)
-          //   .then((response) => {
-          //     console.log(response.data);
-          //     if (this.sessionId === null) {
-          //       this.sessionId = response.data.sessionId;
-          //       this.wsConnection.close();
-          //       this.initWebSocket();
-          //     }
-          //   })
-          //   .catch((error) => {
-          //     console.log(error);
-          //   });
+          axios.post(requestUrl, { password: this.password })
+            .then((response) => {
+              console.log(response.data);
+              if (!response.data.success) {
+                this.$buefy.toast.open({
+                  duration: 5000,
+                  message: response.data.message,
+                  type: 'is-danger'
+                });
+              } else {
+                this.isDoorLocked = false;
+                this.isLoggedIn = true;
+                getMachineStatus();
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         },
         getDrinksList() {
           axios.get(`//${SERVER_HOST}/drinks`)
