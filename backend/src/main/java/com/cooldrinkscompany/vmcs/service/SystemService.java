@@ -13,6 +13,7 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
@@ -48,23 +49,26 @@ public class SystemService implements Service {
             .post(PathMatcher.create("/lockDoor"), this::lockDoor);
     }
 
-    private boolean validatePassword(String inputPassword){
+    private boolean validatePassword(String inputPassword) {
         String realPassword = this.config.get("password").asMap().get().get("password");
-        if (inputPassword.equals(realPassword)){
+        if (inputPassword.equals(realPassword)) {
             return true;
         }
         return false;
     }
 
-    private void login(ServerRequest request, ServerResponse response){
+    private void login(ServerRequest request, ServerResponse response) {
         request.content().as(JsonObject.class).thenAccept(json -> {
             String inputPassword = json.getString("password", null);
-            if(validatePassword(inputPassword)){
+            boolean isValidLogin = validatePassword(inputPassword);
+            JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("status", isValidLogin);
+            if (isValidLogin) {
                 String loginResponse = ControllerSetSystemStatus.setLoggedIn(this.productDao);
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status",loginResponse).build();
+                JsonObject returnObject = builder.add("message", loginResponse).build();
                 response.send(returnObject);
-            }else{
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("status", "Failed to login with password " + inputPassword).build();
+            } else {
+                JsonObject returnObject = builder.add("message", "Failed to login with password " + inputPassword)
+                        .build();
                 response.send(returnObject);
             }
         }).exceptionally(e -> {
