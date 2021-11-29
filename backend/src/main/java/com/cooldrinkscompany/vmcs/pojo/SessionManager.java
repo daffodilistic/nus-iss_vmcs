@@ -47,7 +47,9 @@ public final class SessionManager {
             // LOGGER.info("[updateSession] Compare result: " +
             // (s.sessionId.toString().equals(sessionId)));
             if (s.sessionId.toString().equals(sessionId)) {
-                s.addCoin(coin);
+                if (coin != null) {
+                    s.addCoin(coin);
+                }
                 session = s;
                 Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
                 VendingMachineSnapshot snapshot = VendingMachineSnapshotFactory.getInstance().getSnapshot();

@@ -60,6 +60,7 @@ public class DrinksService implements Service {
             String sessionId = request.queryParams().first("sessionId").get();
             LOGGER.info("[buyDrink] sessionId: " + sessionId);
             Map<String, Object> result = buyDrinkById(sessionId, Integer.parseInt(drinkId));
+            SessionManager.getInstance().updateSession(sessionId, null);
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(result));
         } else {
             Map<String, Object> data = new HashMap<String, Object>();
