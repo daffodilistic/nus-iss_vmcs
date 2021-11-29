@@ -19,6 +19,7 @@ public class ProductDAOImpl implements ProductDAO {
     public final String createDrinksTable = "CREATE TABLE public.drinks (id SERIAL PRIMARY KEY, name VARCHAR NULL, price FLOAT, quantity INT)";
     public final String createCoinsTable = "CREATE TABLE public.coins (id SERIAL PRIMARY KEY, name VARCHAR NULL, denomination FLOAT, quantity INT)";
     public final String createSystemTable = "CREATE TABLE public.system (id SERIAL PRIMARY KEY, name VARCHAR NULL, status BOOLEAN)";
+    public final String getAllDrinks = "SELECT * FROM drinks";
     public final String getCoinsQty = "SELECT quantity FROM coins where name = '%s'";
     public final String setCoinsQty = "UPDATE coins SET quantity = %s where name = '%s'";
     public final String getDrinksQty = "SELECT quantity FROM drinks where name = '%s'";
@@ -56,6 +57,16 @@ public class ProductDAOImpl implements ProductDAO {
                 .createInsert(createSystemTable).execute())
                 .thenAccept(System.out::println).exceptionally(throwable -> {
             LOGGER.log(Level.WARNING, "Failed to create system table, maybe it already exists?", throwable);
+            return null;
+        });
+        // Seed SystemStatus Table
+        dbClient.execute(handle -> handle
+                .createInsert(
+                "INSERT INTO public.system AS settings (id, name, status) VALUES (1,'isLoggedIn',FALSE) ON CONFLICT (id) DO UPDATE SET status = FALSE WHERE settings.id = 1;" + 
+                "INSERT INTO public.system AS settings (id, name, status) VALUES (2,'isUnlocked',FALSE) ON CONFLICT (id) DO UPDATE SET status = FALSE WHERE settings.id = 2;")
+                .execute())
+                .thenAccept(System.out::println).exceptionally(throwable -> {
+            LOGGER.log(Level.WARNING, "Failed to seed system table!", throwable);
             return null;
         });
     }
@@ -156,13 +167,27 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
+    public double getDrinkQuantityById(int drinkId){
+        try {
+            String sql = String.format("SELECT quantity FROM drinks where id = '%d'",drinkId);
+            LOGGER.info("getDrinkQuantityById full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("quantity").doubleValue();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
+        }
+    }
+
     public String setDrinkQuantity(String name, String quantity){
         try {
             String sql = String.format(this.setDrinksQty, quantity, name);
             LOGGER.info("setDrinkQty full sql is: " + sql);
             String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
             if (sqlResponse.equals("0")){
-                return "SQL Statement update failed. Do you indicate the correct Drink name?";
+                return "Failed. SQL Statement update failed. Do you indicate the correct Drink name?";
             }else{
                 return "Success";
             }
@@ -172,6 +197,18 @@ public class ProductDAOImpl implements ProductDAO {
         } catch (Exception e){
             LOGGER.info(e.toString());
             return "Failed. Unexpected error, please check log.";
+        }
+    }
+
+    public boolean setDrinkQuantityById(int drinkId, int quantity){
+        try {
+            String sql = String.format("UPDATE drinks SET quantity = %d where id = '%d'",quantity,drinkId);
+            LOGGER.info("getDrinkQuantityById full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            return sqlResponse.equals("0");
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return false;
         }
     }
 
@@ -186,6 +223,20 @@ public class ProductDAOImpl implements ProductDAO {
         }catch (Exception e){
             LOGGER.info(e.toString());
             return "NA";
+        }
+    }
+
+    public double getDrinkPriceById(int drinkId){
+        try {
+            String sql = String.format("SELECT price FROM drinks where id = '%d'",drinkId);
+            LOGGER.info("getDrinkPriceById full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("price").doubleValue();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
         }
     }
 
@@ -207,6 +258,21 @@ public class ProductDAOImpl implements ProductDAO {
             return "Failed. Unexpected error, please check log.";
         }
     }
+
+    public List<JsonObject> getAllDrinks(){
+        try {
+            String sql = this.getAllDrinks;
+            LOGGER.info("getAllDrinks full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            List<JsonObject> result = rows.get();
+            return result;
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return new ArrayList<>();
+        }
+    }
+
     public String setStatus(String name, boolean status){
         try {
             String sql = String.format(this.setStatus, status, name);

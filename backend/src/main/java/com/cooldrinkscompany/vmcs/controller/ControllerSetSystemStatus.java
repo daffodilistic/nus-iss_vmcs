@@ -14,6 +14,10 @@ public class ControllerSetSystemStatus {
         }
     }
 
+    public static String setStatus(ProductDAOImpl dao, String name, boolean status){
+        return dao.setStatus(name, status);
+    }
+
     public static boolean getStatus(ProductDAOImpl dao, String name){
         return dao.getStatus(name);
     }
