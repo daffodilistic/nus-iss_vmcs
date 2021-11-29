@@ -110,10 +110,10 @@
           <div class="panel-block">
             <div class="columns container is-centered">
               <div class="column is-narrow">
-                <button v-if="isDoorLocked" v-on:click="toggleDoor()" class="button is-danger">
+                <button v-if="isDoorLocked" class="button is-danger">
                   Door Locked
                 </button>
-                <button v-else="isDoorLocked" v-on:click="toggleDoor()" class="button is-success">
+                <button v-else="isDoorLocked" class="button is-success">
                   Door Unlocked
                 </button>
               </div>
@@ -166,6 +166,18 @@
               <b>Machinery Panel</b>
             </div>
           </template>
+          <div class="panel-block">
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <button v-if="isDoorLocked" v-on:click="toggleDoor()" class="button is-danger">
+                  Door Locked
+                </button>
+                <button v-else="isDoorLocked" v-on:click="toggleDoor()" class="button is-success">
+                  Door Unlocked
+                </button>
+              </div>
+            </div>
+          </div>
           <div class="panel-block">
             <div class="columns container is-centered">
               <div class="column is-narrow">
@@ -296,7 +308,7 @@
         toggleDoor() {
           this.isDoorLocked = !this.isDoorLocked;
 
-          console.log("Toggling door to " +  this.isDoorLocked ? "locked" : "unlocked");
+          console.log("Toggling door to " + this.isDoorLocked ? "locked" : "unlocked");
 
           let requestUrl = `//${SERVER_HOST}/system/setDoorStatus`;
 
