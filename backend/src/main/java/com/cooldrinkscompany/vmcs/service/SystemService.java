@@ -116,4 +116,10 @@ public class SystemService implements Service {
         response.send(returnObject);
     }
 
+    private void unlockDoor(ServerRequest request, ServerResponse response) {
+        String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", true);
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Status:", lockDoorResponse.equals("Success") ? "Door unlocked" : "Unlock Failed").build();
+        response.send(returnObject);
+    }
 }
