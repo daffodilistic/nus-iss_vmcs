@@ -156,7 +156,7 @@ public class CoinsService implements Service {
                 && ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
         JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("success", canCashOut);
         if (canCashOut) {
-            float cashOut = ControllerManageCoin.collectAllCash(this.productDao);
+            float cashOut = Float.parseFloat(ControllerManageCoin.collectAllCash(this.productDao));
             builder.add("cash_out", cashOut);
             response.send(builder.build());
         } else {
