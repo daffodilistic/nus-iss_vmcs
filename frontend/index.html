@@ -101,7 +101,7 @@
               <div class="column is-narrow">
                 <b-field grouped label="Maintainer Login" label-position="on-border">
                   <b-input type="password" v-model="password" password-reveal></b-input>
-                  <button v-on:click="login()" class="button is-info">Login</button>
+                  <button v-on:click="login()" class="button is-primary">Login</button>
                 </b-field>
               </div>
             </div>
@@ -118,15 +118,22 @@
               </div>
             </div>
           </div>
-          <div class="panel-block">
-            <div class="columns container is-centered">
-              <div class="column is-narrow">
-                <button v-on:click="collectCoins()" :disabled="getMaintenancePanelEnabled()"
-                  class="button is-info">Collect
-                  Coins</button>
-                <button v-on:click="showTotalAmount()" :disabled="getMaintenancePanelEnabled()"
-                  class="button is-info">Show Total
-                  Amount</button>
+          <div :hidden="!getMaintenancePanelEnabled()">
+            <div class="panel-block">
+              <div class="columns container is-vcentered is-centered">
+                <div class="column is-narrow">
+                  <b-field>
+                    <button v-on:click="showTotalAmount()" class="button is-info">Show Total Amount</button>
+                  </b-field>
+                </div>
+                <div class="column is-narrow">
+                  <b-field label-position="inside" label="Total Cash Held">
+                    <b-input type="number" v-bind:value="totalCashAmount" disabled></b-input>
+                    <p class="control">
+                      <b-button class="button is-info">Collect</b-button>
+                    </p>
+                  </b-field>
+                </div>
               </div>
             </div>
           </div>
@@ -164,6 +171,7 @@
           isLoggedIn: false,
           isDoorLocked: true,
           isSwitchedOn: "Off",
+          totalCashAmount: "0.00",
           drinks: [],
           coins: Object.freeze([
             {
@@ -208,7 +216,8 @@
 
         },
         getMaintenancePanelEnabled() {
-          return !(this.isLoggedIn && !this.isDoorLocked);
+          return true;
+          // return !(this.isLoggedIn && !this.isDoorLocked);
         },
         login() {
           console.log("Password is " + this.password);
@@ -228,6 +237,18 @@
                 this.isLoggedIn = true;
                 getMachineStatus();
               }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
+        },
+        showTotalAmount() {
+          let requestUrl = `//${SERVER_HOST}/coins/queryTotalAmount`;
+
+          axios.get(requestUrl)
+            .then((response) => {
+              console.log(response.data);
+              this.totalCashAmount = Number(response.data.total_cash / 100).toFixed(2);
             })
             .catch((error) => {
               console.log(error);
