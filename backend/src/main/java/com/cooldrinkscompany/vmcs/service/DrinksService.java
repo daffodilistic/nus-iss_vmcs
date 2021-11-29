@@ -61,6 +61,7 @@ public class DrinksService implements Service {
             LOGGER.info("[buyDrink] sessionId: " + sessionId);
             Map<String, Object> result = buyDrinkById(sessionId, Integer.parseInt(drinkId));
             SessionManager.getInstance().updateSession(sessionId, null);
+            SessionManager.getInstance().updateAllSessions();
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(result));
         } else {
             Map<String, Object> data = new HashMap<String, Object>();

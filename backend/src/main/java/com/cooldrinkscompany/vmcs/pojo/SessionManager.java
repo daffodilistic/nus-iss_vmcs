@@ -81,4 +81,14 @@ public final class SessionManager {
         LOGGER.info(new Gson().toJson(sessions));
         return session;
     }
+
+    public void updateAllSessions() {
+        for (Session s : sessions) {
+            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+            VendingMachineSnapshot snapshot = VendingMachineSnapshotFactory.getInstance().getSnapshot();
+            JsonElement jsonElement = gson.toJsonTree(snapshot);
+            jsonElement.getAsJsonObject().add("session", gson.toJsonTree(s));
+            MessageBoardEndpoint.getInstance().sendMessage(gson.toJson(jsonElement), s.sessionId.toString());
+        }
+    }
 }
