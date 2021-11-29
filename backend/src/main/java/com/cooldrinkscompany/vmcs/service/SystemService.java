@@ -41,12 +41,11 @@ public class SystemService implements Service {
 
     @Override
     public void update(Routing.Rules rules) {
-
         rules
-        .post(PathMatcher.create("/login"), this::login)
-        .get(PathMatcher.create("/logout"), this::logout)
-        .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
-        .get(PathMatcher.create("/lockDoor"), this::lockDoor);
+            .post(PathMatcher.create("/login"), this::login)
+            .post(PathMatcher.create("/logout"), this::logout)
+            .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
+            .post(PathMatcher.create("/lockDoor"), this::lockDoor);
     }
 
     private boolean validatePassword(String inputPassword){
