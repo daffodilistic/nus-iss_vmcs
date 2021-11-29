@@ -103,7 +103,9 @@ public class CoinsService implements Service {
         LOGGER.info("start viewing coins qty");
         String coinName = request.path().toString().replace("/viewCoinQty/", "");
         int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Coin Qty:", qty !=Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist").build();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Coin Qty:", qty != Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist")
+                .build();
         response.send(returnObject);
     }
 
@@ -154,7 +156,7 @@ public class CoinsService implements Service {
                 && ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
         JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("success", canCashOut);
         if (canCashOut) {
-            float cashOut = ControllerManageCoin.queryTotalAmount(this.productDao);
+            float cashOut = ControllerManageCoin.collectAllCash(this.productDao);
             builder.add("cash_out", cashOut);
             response.send(builder.build());
         } else {
