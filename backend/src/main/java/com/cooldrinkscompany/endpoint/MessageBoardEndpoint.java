@@ -72,7 +72,11 @@ public class MessageBoardEndpoint extends Endpoint {
         }
 
         sessions.get(key).parallelStream().forEach(session -> {
-            session.getAsyncRemote().sendText(message);
+            if (session.isOpen()) {
+                session.getAsyncRemote().sendText(message);
+            }
+        });
+    }
         });
     }
 
