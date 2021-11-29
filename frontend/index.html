@@ -226,7 +226,6 @@
           totalCashAmount: 0,
           cashCollected: 0,
           drinks: [],
-          coins: [],
           drinksTableColumns: Object.freeze([
             {
               field: 'id',
@@ -303,6 +302,11 @@
                   type: 'is-danger'
                 });
               } else {
+                this.$buefy.toast.open({
+                  duration: 5000,
+                  message: response.data.message,
+                  type: 'is-success'
+                });
               }
             })
             .catch((error) => {
@@ -459,7 +463,9 @@
           this.wsConnection = new WebSocket(`ws://${SERVER_HOST}/websocket/${this.sessionId ?? ''}`);
           this.wsConnection.onmessage = (event) => {
             console.log("[WebSocket] Incoming data:", event.data);
-            this.wsData = event.data;
+            this.wsData = JSON.parse(event.data);
+            this.drinks = this.wsData.drinks;
+            this.sessionData = this.wsData.session;
           }
         },
         insertCoin(coinData) {
