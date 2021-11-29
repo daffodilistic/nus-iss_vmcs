@@ -9,6 +9,8 @@
   <!-- Buefy framework -->
   <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css">
   <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+  <!-- Material Design Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
   <!-- Axios framework -->
   <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
 </head>
@@ -19,7 +21,7 @@
     <div class="container">
       <section class="section">
         <h1 class="title is-1">VMCS Simulator</h1>
-        <div class="field is-horizontal">
+        <!-- <div class="field is-horizontal">
           <div class="field-label is-normal">
             <label class="label">Machine Power</label>
           </div>
@@ -30,7 +32,7 @@
               </b-switch>
             </div>
           </div>
-        </div>
+        </div> -->
         <b-collapse class="panel is-dark" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
@@ -76,14 +78,9 @@
                     <footer class="card-footer">
                       <p class="card-footer-item">
                         <span>
-                          <template v-if="drink.quantity == 0">
-                            <b-button disabled type="is-fullwidth is-rounded is-primary">OOS
-                            </b-button>
-                          </template>
-                          <template v-else>
-                            <b-button type="is-fullwidth is-rounded is-primary">Buy
-                            </b-button>
-                          </template>
+                          <b-button v-if="drink.quantity == 0" disabled type="is-fullwidth is-rounded is-primary">OOS
+                          </b-button>
+                          <b-button v-else type="is-fullwidth is-rounded is-primary">Buy</b-button>
                         </span>
                       </p>
                     </footer>
@@ -102,8 +99,34 @@
           <div class="panel-block">
             <div class="columns container is-centered">
               <div class="column is-narrow">
-                <button v-on:click="collectCoins()" class="button is-info">Collect Coins</button>
-                <button v-on:click="showTotalAmount()" class="button is-info">Show Total Amount</button>
+                <b-field grouped label="Maintainer Login" label-position="on-border" >
+                  <b-input  type="password" v-model="password" password-reveal></b-input>
+                  <button v-on:click="login()" class="button is-info">Login</button>
+                </b-field>
+              </div>
+            </div>
+          </div>
+          <div class="panel-block">
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <button v-if="isDoorLocked" class="button is-danger">
+                  Door Locked
+                </button>
+                <button v-else="isDoorLocked" class="button is-success">
+                  Door Unlocked
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-block">
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <button v-on:click="collectCoins()" :disabled="getMaintenancePanelEnabled()"
+                  class="button is-info">Collect
+                  Coins</button>
+                <button v-on:click="showTotalAmount()" :disabled="getMaintenancePanelEnabled()"
+                  class="button is-info">Show Total
+                  Amount</button>
               </div>
             </div>
           </div>
@@ -134,9 +157,12 @@
       },
       data() {
         return {
+          password: null,
           sessionId: null,
           wsData: null,
           wsConnection: null,
+          isLoggedIn: false,
+          isDoorLocked: true,
           isSwitchedOn: "Off",
           drinks: [],
           coins: Object.freeze([
@@ -178,6 +204,31 @@
         this.getDrinksList();
       },
       methods: {
+        getMaintenancePanelEnabled() {
+          return !(this.isLoggedIn && !this.isDoorLocked);
+        },
+        login() {
+          console.log("Password is " + this.password);
+          this.isLoggedIn = true;
+          this.isDoorLocked = false;
+          // let requestUrl = `//${SERVER_HOST}/coins/insert`;
+          // if (this.sessionId) {
+          //   requestUrl += `?sessionId=${this.sessionId}`;
+          // }
+
+          // axios.post(requestUrl, coinData)
+          //   .then((response) => {
+          //     console.log(response.data);
+          //     if (this.sessionId === null) {
+          //       this.sessionId = response.data.sessionId;
+          //       this.wsConnection.close();
+          //       this.initWebSocket();
+          //     }
+          //   })
+          //   .catch((error) => {
+          //     console.log(error);
+          //   });
+        },
         getDrinksList() {
           axios.get(`//${SERVER_HOST}/drinks`)
             .then(response => {
