@@ -101,16 +101,22 @@ public class CoinsService implements Service {
 
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
+        if(ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
         String coinName = request.path().toString().replace("/viewCoinQty/", "");
         int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
         JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
                 .add("Coin Qty:", qty != Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist")
                 .build();
         response.send(returnObject);
+        }else{
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Coin Qty:", "Door locked. Please unlock door first.").build();
+        response.send(returnObject);
+        }
     }
 
     private void setCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting coins qty");
+        if(ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
         String coinParams = request.path().toString().replace("/setCoinQty/", "");
         String[] coinTypeAndQty = coinParams.split(":");
         if (coinTypeAndQty.length != 2) {
@@ -123,6 +129,10 @@ public class CoinsService implements Service {
             String status = ControllerManageCoin.setCoinQty(this.productDao, coinType, coinQty);
             JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", status).build();
             response.send(returnObject);
+        }
+        }else{
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Coin Qty:", "Door locked. Please unlock door first.").build();
+        response.send(returnObject);
         }
     }
 
