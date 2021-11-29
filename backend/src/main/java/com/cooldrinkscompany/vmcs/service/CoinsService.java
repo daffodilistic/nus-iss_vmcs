@@ -150,13 +150,17 @@ public class CoinsService implements Service {
 
     private void collectAllCash(ServerRequest request, ServerResponse response) {
         LOGGER.info("start collecting all cash");
-        if(ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn") && ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
-            String totalAMt = ControllerManageCoin.collectAllCash(this.productDao);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Collected Cash (in cents):", totalAMt).build();
-            response.send(returnObject);
-        }else{
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", "System is currently locked. Please login and unlock door first.").build();
-            response.send(returnObject);
+        boolean canCashOut = ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn")
+                && ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
+        JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("success", canCashOut);
+        if (canCashOut) {
+            float cashOut = ControllerManageCoin.queryTotalAmount(this.productDao);
+            builder.add("cash_out", cashOut);
+            response.send(builder.build());
+        } else {
+            builder.addNull("total_cash");
+            builder.add("message", "System is currently locked. Please login and unlock door first.");
+            response.send(builder.build());
         }
 
     }
