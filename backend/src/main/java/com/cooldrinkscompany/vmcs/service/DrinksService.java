@@ -1,7 +1,11 @@
 package com.cooldrinkscompany.vmcs.service;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 //import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +18,8 @@ import javax.json.JsonObject;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.google.gson.Gson;
+
 import io.helidon.common.reactive.Multi;
 import io.helidon.webserver.*;
 import io.helidon.webserver.Routing;
@@ -37,7 +43,7 @@ public class DrinksService implements Service {
                 .get("/", this::listDrinks)
                 .post("/{drinkId}/buy", this::buyDrink)
                 .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
-                .get(PathMatcher.create("/setDrinkQty/*"), this::setDrinkQty)
+                .put(PathMatcher.create("/setDrinkQty"), this::setDrinkQty)
                 .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
                 .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
@@ -75,26 +81,39 @@ public class DrinksService implements Service {
 
     private void setDrinkQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting drinks qty");
-        if(ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
-        String drinkParams = request.path().toString().replace("/setDrinkQty/", "");
-        String[] drinkTypeAndQty = drinkParams.split(":");
-        if (drinkTypeAndQty.length != 2) {
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:", "Invalid Input! Must be DrinkType:Qty format")
+        boolean canSetDrinkQuantity = ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked");
+        if (canSetDrinkQuantity) {
+            request.content().as(JsonObject.class).thenAccept(json -> {
+                String drinkName = json.getString("name");
+                String quantity = String.valueOf(json.getInt("quantity", -1));
+                LOGGER.info(String.format("[setDrinkQty] Updating drink: %s with quantity: %s", drinkName, quantity));
+                String status = ControllerManageDrink.setDrinkQty(this.productDao, drinkName, quantity);
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("success", !status.contains("Failed"))
+                    .add("message", status)
                     .build();
-            response.send(returnObject);
+                // TODO: Send an update to all clients via WebSocket
+
+                response.send(returnObject);
+            }).exceptionally(e -> {
+                LOGGER.info("[setDrinkQty] Exception: " + e.getMessage());
+                e.printStackTrace();
+    
+                StringWriter stackTrace = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTrace));
+    
+                Map<String, Object> data = new HashMap<String, Object>();
+                data.put("error", "Cannot update drink quantity!");
+                data.put("reason", e.toString());
+    
+                // LOGGER.info("[setDrinkQty] Data: " + new Gson().toJson(data));
+    
+                response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+                return null;
+            });
         } else {
-            String drinkType = drinkTypeAndQty[0];
-            String drinkQty = drinkTypeAndQty[1];
-            String status = ControllerManageDrink.setDrinkQty(this.productDao, drinkType, drinkQty);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:", status)
-                    .build();
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Drink Qty:", "Door locked. Please unlock door first.").build();
             response.send(returnObject);
-        }
-        }else{
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Drink Qty:", "Door locked. Please unlock door first.").build();
-        response.send(returnObject);
         }
     }
 
