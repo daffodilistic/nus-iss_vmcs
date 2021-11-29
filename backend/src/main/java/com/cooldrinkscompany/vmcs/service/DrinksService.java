@@ -106,6 +106,7 @@ public class DrinksService implements Service {
             LOGGER.info(new Gson().toJson(session.coins));
 
             data.put("success", true);
+            data.put("message", "Thank you for your purchase!");
             data.put("data", session);
         } else {
             data.put("error", "Can't buy this drink!");
