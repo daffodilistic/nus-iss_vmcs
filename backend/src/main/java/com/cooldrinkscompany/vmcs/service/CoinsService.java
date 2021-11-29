@@ -12,18 +12,19 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.InsertCoin;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
 import com.cooldrinkscompany.vmcs.pojo.Session;
 import com.cooldrinkscompany.vmcs.pojo.SessionManager;
+import com.cooldrinkscompany.vmcs.controller.ControllerManageCoin;
+
 import com.google.gson.Gson;
 
 import io.helidon.common.reactive.Multi;
-import io.helidon.config.Config;
 import io.helidon.webserver.*;
-import com.cooldrinkscompany.vmcs.controller.ControllerManageCoin;
 
 public class CoinsService implements Service {
     private static final Logger LOGGER = Logger.getLogger(CoinsService.class.getName());
@@ -44,7 +45,7 @@ public class CoinsService implements Service {
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
                 .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
-                .get("/queryTotalAmount",this::queryTotalAmount)
+                .get("/queryTotalAmount", this::queryTotalAmount)
                 .get("/collectAllCash", this::collectAllCash);
     }
 
@@ -133,13 +134,17 @@ public class CoinsService implements Service {
 
     private void queryTotalAmount(ServerRequest request, ServerResponse response) {
         LOGGER.info("start calculation all coins value");
-        if(ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn") && ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
-            float totalAMt = ControllerManageCoin.queryTotalAmount(this.productDao);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", totalAMt!=Float.MAX_VALUE ? String.valueOf(totalAMt) :"ERROR").build();
-            response.send(returnObject);
-        }else{
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Total Cash Held (in cents):", "System is currently locked. Please login and unlock door first.").build();
-            response.send(returnObject);
+        boolean canGetTotalAmount = ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn")
+                && ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
+        JsonObjectBuilder builder = JSON_FACTORY.createObjectBuilder().add("success", canGetTotalAmount);
+        if (canGetTotalAmount) {
+            float totalCash = ControllerManageCoin.queryTotalAmount(this.productDao);
+            builder.add("total_cash", totalCash);
+            response.send(builder.build());
+        } else {
+            builder.addNull("total_cash");
+            builder.add("message", "System is currently locked. Please login and unlock door first.");
+            response.send(builder.build());
         }
     }
 
