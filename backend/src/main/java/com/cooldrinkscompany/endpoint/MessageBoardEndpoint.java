@@ -77,8 +77,6 @@ public class MessageBoardEndpoint extends Endpoint {
             }
         });
     }
-        });
-    }
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
