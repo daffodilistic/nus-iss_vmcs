@@ -112,12 +112,23 @@ public class SystemService implements Service {
     private void toggleDoor(ServerRequest request, ServerResponse response) {
         request.content().as(JsonObject.class).thenAccept(json -> {
             boolean lockDoor = json.getBoolean("lock_door", false);
-            String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", lockDoor);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-            .add("success", !status.contains("Failed"))
-            .add("message", status)
-            .build();
+            boolean unlockDoor = json.getBoolean("lock_door", true);
+            if (ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")){
+                 String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", lockDoor);
+                 JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                 .add("success", !status.contains("Failed"))
+                 .add("message", status)
+                 .build();
+                 response.send(returnObject);
+            }else{
+                String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", unlockDoor);    
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("success", !status.contains("Failed"))
+                .add("message", status)
+                .build();
             response.send(returnObject);
+            }
+            
         }).exceptionally(e -> {
             LOGGER.info("[toggleDoor] Exception: " + e.getMessage());
             e.printStackTrace();
