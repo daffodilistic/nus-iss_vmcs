@@ -43,10 +43,10 @@ public class SystemService implements Service {
     @Override
     public void update(Routing.Rules rules) {
         rules
-            .post(PathMatcher.create("/login"), this::login)
-            .post(PathMatcher.create("/logout"), this::logout)
-            .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
-            .post(PathMatcher.create("/lockDoor"), this::lockDoor);
+                .post(PathMatcher.create("/login"), this::login)
+                .post(PathMatcher.create("/logout"), this::logout)
+                .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
+                .post(PathMatcher.create("/lockDoor"), this::lockDoor);
     }
 
     private boolean validatePassword(String inputPassword) {
@@ -89,28 +89,31 @@ public class SystemService implements Service {
         });
     }
 
-    private void logout(ServerRequest request, ServerResponse response){
-        if (ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")){
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", "Log out Failed. Please lock the door first.").build();
+    private void logout(ServerRequest request, ServerResponse response) {
+        if (ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")) {
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:", "Log out Failed. Please lock the door first.").build();
             response.send(returnObject);
-        }else{
-            String logoutResponse= ControllerSetSystemStatus.setStatus(this.productDao, "isLoggedIn", false);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", logoutResponse.equals("Success") ? "Logged out" : "Logged out Failed").build();
+        } else {
+            String logoutResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isLoggedIn", false);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Status:", logoutResponse.equals("Success") ? "Logged out" : "Logged out Failed").build();
             response.send(returnObject);
         }
     }
 
-    private void viewDoorStatus(ServerRequest request, ServerResponse response){
+    private void viewDoorStatus(ServerRequest request, ServerResponse response) {
         Boolean doorStatus = ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", doorStatus ? "Unlocked" : "Locked").build();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", doorStatus ? "Unlocked" : "Locked")
+                .build();
         response.send(returnObject);
     }
 
-    private void lockDoor(ServerRequest request, ServerResponse response){
+    private void lockDoor(ServerRequest request, ServerResponse response) {
         String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", false);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", lockDoorResponse.equals("Success") ? "Door locked" : "Lock Failed").build();
+        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                .add("Status:", lockDoorResponse.equals("Success") ? "Door locked" : "Lock Failed").build();
         response.send(returnObject);
     }
-
 
 }
