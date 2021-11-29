@@ -51,7 +51,7 @@
           </div>
           <div class="panel-block">
             <div class="columns container is-centered">
-              <template v-for="(coin, index) in coins">
+              <template v-for="(coin, index) in insertCoins">
                 <div class="column is-narrow">
                   <button v-if="coin.country === 'SG'" v-on:click="insertCoin(coin)" class="button is-info">{{ coin.name
                     }}</button>
@@ -66,7 +66,7 @@
             <div class="columns is-centered">
               <template v-for="(drink, index) in drinks">
                 <div class="column is-narrow" :key="index">
-                  <div class="card">
+                  <div class="card has-background-info-light is-bordered">
                     <div class="card-content">
                       <p class="title">
                         {{ drink.name }}
@@ -118,6 +118,18 @@
               </div>
             </div>
           </div>
+          <div class="panel-block">
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <h3 class="title is-5 has-text-centered">Drinks</h3>
+                <b-table :data="drinks" :columns="drinksTableColumns" bordered striped></b-table>
+              </div>
+              <div class="column is-narrow">
+                <h3 class="title is-5 has-text-centered">Coins</h3>
+                <!-- <b-table :data="coins" :columns="drinksTableColumns" bordered striped></b-table> -->
+              </div>
+            </div>
+          </div>
           <div :hidden="!getMaintenancePanelEnabled()">
             <div class="panel-block">
               <div class="columns container is-vcentered is-centered">
@@ -147,17 +159,24 @@
             </div>
           </div>
         </b-collapse>
-        <b-collapse class="panel is-danger" animation="slide" :open=false>
+        <b-collapse class="panel is-danger" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
               <b>Machinery Panel</b>
             </div>
           </template>
           <div class="panel-block">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-            Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus.
-            <br />
-            Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque.
+            <div class="columns container is-centered">
+              <div class="column is-narrow">
+                <h3 class="title is-5 has-text-centered">Drinks</h3>
+                <template v-for="(drink, index) in drinks">
+                  <b-field :label="drink.name">
+                    <b-numberinput controls-rounded :value="drink.quantity"></b-numberinput>
+                  </b-field>
+                </template>
+                <b-button v-on:click="updateDrinks()" class="button is-info is-fullwidth">Update Drinks</b-button>
+              </div>
+            </div>
           </div>
         </b-collapse>
       </section>
@@ -183,7 +202,31 @@
           totalCashAmount: 0,
           cashCollected: 0,
           drinks: [],
-          coins: Object.freeze([
+          coins: [],
+          drinksTableColumns: Object.freeze([
+            {
+              field: 'id',
+              label: 'ID',
+              width: '40',
+              numeric: true
+            },
+            {
+              field: 'name',
+              label: 'Name'
+            },
+            {
+              field: 'price',
+              label: 'Price',
+              numeric: true
+            },
+            {
+              field: 'quantity',
+              label: 'Quantity',
+              numeric: true
+            },
+          ]
+          ),
+          insertCoins: Object.freeze([
             {
               name: "S$0.05",
               country: "SG",
