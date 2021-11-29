@@ -167,6 +167,20 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
+    public double getDrinkQuantityById(int drinkId){
+        try {
+            String sql = String.format("SELECT quantity FROM drinks where id = '%d'",drinkId);
+            LOGGER.info("getDrinkQuantityById full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("quantity").doubleValue();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
+        }
+    }
+
     public String setDrinkQuantity(String name, String quantity){
         try {
             String sql = String.format(this.setDrinksQty, quantity, name);
@@ -186,6 +200,18 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
+    public boolean setDrinkQuantityById(int drinkId, int quantity){
+        try {
+            String sql = String.format("UPDATE drinks SET quantity = %d where id = '%d'",quantity,drinkId);
+            LOGGER.info("getDrinkQuantityById full sql is: " + sql);
+            String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
+            return sqlResponse.equals("0");
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return false;
+        }
+    }
+
     public String getDrinkPrice(String name){
         try {
             String sql = String.format(this.getDrinksPrice,name);
@@ -197,6 +223,20 @@ public class ProductDAOImpl implements ProductDAO {
         }catch (Exception e){
             LOGGER.info(e.toString());
             return "NA";
+        }
+    }
+
+    public double getDrinkPriceById(int drinkId){
+        try {
+            String sql = String.format("SELECT price FROM drinks where id = '%d'",drinkId);
+            LOGGER.info("getDrinkPriceById full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("price").doubleValue();
+        }catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
         }
     }
 
