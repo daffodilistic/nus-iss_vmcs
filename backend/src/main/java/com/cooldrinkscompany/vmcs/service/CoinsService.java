@@ -78,7 +78,7 @@ public class CoinsService implements Service {
 
             Map<String, Object> data = new HashMap<String, Object>();
             data.put("error", "Invalid coin!");
-            data.put("reason", e.toString());
+            data.put("message", e.toString());
 
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
