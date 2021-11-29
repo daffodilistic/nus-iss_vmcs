@@ -80,7 +80,7 @@ public class SystemService implements Service {
 
             Map<String, Object> data = new HashMap<String, Object>();
             data.put("error", "Failed login!");
-            data.put("reason", e.toString());
+            data.put("message", e.toString());
 
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
