@@ -112,8 +112,10 @@ public class DrinksService implements Service {
                 return null;
             });
         } else {
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Drink Qty:", "Door locked. Please unlock door first.").build();
-            response.send(returnObject);
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Cannot update drink quantity!");
+            data.put("message", "Door locked. Please unlock door first.");
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
         }
     }
 
