@@ -46,7 +46,7 @@ public class SystemService implements Service {
                 .post(PathMatcher.create("/login"), this::login)
                 .post(PathMatcher.create("/logout"), this::logout)
                 .get(PathMatcher.create("/viewDoorStatus"), this::viewDoorStatus)
-                .post(PathMatcher.create("/lockDoor"), this::lockDoor);
+                .post(PathMatcher.create("/setDoorStatus"), this::toggleDoor);
     }
 
     private boolean validatePassword(String inputPassword) {
@@ -109,17 +109,30 @@ public class SystemService implements Service {
         response.send(returnObject);
     }
 
-    private void lockDoor(ServerRequest request, ServerResponse response) {
-        String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", false);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                .add("Status:", lockDoorResponse.equals("Success") ? "Door locked" : "Lock Failed").build();
-        response.send(returnObject);
-    }
+    private void toggleDoor(ServerRequest request, ServerResponse response) {
+        request.content().as(JsonObject.class).thenAccept(json -> {
+            boolean lockDoor = json.getBoolean("lock_door", false);
+            String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", lockDoor);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+            .add("success", !status.contains("Failed"))
+            .add("message", status)
+            .build();
+            response.send(returnObject);
+        }).exceptionally(e -> {
+            LOGGER.info("[toggleDoor] Exception: " + e.getMessage());
+            e.printStackTrace();
 
-    private void unlockDoor(ServerRequest request, ServerResponse response) {
-        String lockDoorResponse = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", true);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                .add("Status:", lockDoorResponse.equals("Success") ? "Door unlocked" : "Unlock Failed").build();
-        response.send(returnObject);
+            StringWriter stackTrace = new StringWriter();
+            e.printStackTrace(new PrintWriter(stackTrace));
+
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Failed to lock the door!");
+            data.put("message", e.toString());
+
+            // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
+
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+            return null;
+        });
     }
 }
