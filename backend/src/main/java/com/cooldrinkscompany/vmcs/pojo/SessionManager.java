@@ -71,4 +71,12 @@ public final class SessionManager {
         }
         return session;
     }
+
+    public Session purchaseSession(Drink drink)
+    {
+        Session session = new Session(drink);
+        sessions.add(session);
+        LOGGER.info(new Gson().toJson(sessions));
+        return session;
+    }
 }
