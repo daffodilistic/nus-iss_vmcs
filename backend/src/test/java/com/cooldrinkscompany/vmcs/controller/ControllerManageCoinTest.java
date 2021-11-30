@@ -45,11 +45,11 @@ class ControllerManageCoinTest {
     void testSetCoinQty_1() {
         when(mockDao.setCoinQuantity("20c", "-1")).thenReturn("-1");
         String actualVal = ControllerManageCoin.setCoinQty(mockDao, "20c", "-1");
-        assertEquals("Quantity cannot less than 0 or greater than 40", actualVal);
+        assertEquals("Failed. Quantity cannot less than 0 or greater than 40", actualVal);
 
         when(mockDao.setCoinQuantity("20c", "41")).thenReturn("41");
         String actualVal_2 = ControllerManageCoin.setCoinQty(mockDao, "20c", "41");
-        assertEquals("Quantity cannot less than 0 or greater than 40", actualVal_2);
+        assertEquals("Failed. Quantity cannot less than 0 or greater than 40", actualVal_2);
     }
     
     @Test

@@ -53,11 +53,11 @@ public class ControllerManageDrinkTest {
     void testSetDrinkQty_1() {
         when(mockDao.setDrinkQuantity("Fanta", "21")).thenReturn("21");
         String actualVal = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "21");
-        assertEquals("Quantity cannot less than 0 or greater than 20", actualVal);
+        assertEquals("Failed. Quantity cannot less than 0 or greater than 20", actualVal);
 
         when(mockDao.setDrinkQuantity("Fanta", "-1")).thenReturn("-1");
         String actualVal_2 = ControllerManageDrink.setDrinkQty(mockDao, "Fanta", "-1");
-        assertEquals("Quantity cannot less than 0 or greater than 20", actualVal_2);
+        assertEquals("Failed. Quantity cannot less than 0 or greater than 20", actualVal_2);
     }
 
     @Test
