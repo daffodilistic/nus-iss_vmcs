@@ -189,6 +189,7 @@ public class CoinsService implements Service {
         if (canCashOut) {
             float cashOut = Float.parseFloat(ControllerManageCoin.collectAllCash(this.productDao));
             builder.add("cash_out", cashOut);
+            SessionManager.getInstance().updateMachineStatus();
             response.send(builder.build());
         } else {
             builder.addNull("cash_out");

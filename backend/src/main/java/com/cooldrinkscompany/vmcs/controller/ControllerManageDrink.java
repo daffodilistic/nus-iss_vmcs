@@ -45,8 +45,8 @@ public class ControllerManageDrink {
         }
     }
 
-    public static String setDrinkPrice(ProductDAOImpl dao, String drinkType, String drinkPrice){
-        String status = dao.setDrinkPrice(drinkType, drinkPrice);
+    public static String setDrinkPrice(ProductDAOImpl dao, String drinkName, String drinkPrice){
+        String status = dao.setDrinkPrice(drinkName, drinkPrice);
         return status;
     }
 }
