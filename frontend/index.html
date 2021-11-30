@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@5.8.55/css/materialdesignicons.min.css">
   <!-- Axios framework -->
   <script src="https://cdn.jsdelivr.net/npm/axios@0.24.0/dist/axios.min.js"></script>
+  <!-- Lodash -->
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 </head>
 
 <body>
@@ -74,7 +76,7 @@
           </div>
           <div class="panel-block">
             <div class="columns is-centered">
-              <template v-for="(drink, index) in sessionData.drinks">
+              <template v-for="(drink, index) in drinks">
                 <div class="column is-narrow" :key="index">
                   <div class="card has-background-info-light is-bordered">
                     <div class="card-content">
@@ -134,11 +136,11 @@
             <div class="columns container is-centered">
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Drinks</h3>
-                <b-table :data="sessionData.drinks" :columns="drinksTableColumns" bordered striped></b-table>
+                <b-table :data="drinks" :columns="drinksTableColumns" bordered striped></b-table>
               </div>
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Coins</h3>
-                <b-table :data="sessionData.coins" :columns="coinsTableColumns" bordered striped></b-table>
+                <b-table :data="coins" :columns="coinsTableColumns" bordered striped></b-table>
               </div>
             </div>
           </div>
@@ -194,7 +196,7 @@
             <div class="columns container is-centered">
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Drinks</h3>
-                <template v-for="(drink, index) in sessionData.drinks">
+                <template v-for="(drink, index) in drinks">
                   <b-field grouped :label="drink.name">
                     <b-numberinput min="0" controls-rounded v-model="drink.quantity"></b-numberinput>
                     <b-button v-on:click="updateDrinkQuantity(drink)" class="is-info" icon-left="content-save">
@@ -204,7 +206,7 @@
               </div>
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Coins</h3>
-                <template v-for="(coin, index) in sessionData.coins">
+                <template v-for="(coin, index) in coins">
                   <b-field grouped :label="coin.name">
                     <b-numberinput min="0" controls-rounded v-model="coin.quantity"></b-numberinput>
                     <b-button v-on:click="updateCoinQuantity(coin)" class="is-info" icon-left="content-save">
@@ -227,17 +229,19 @@
       },
       data() {
         return {
-          password: null,
-          sessionId: null,
-          wsData: null,
-          wsConnection: null,
+          webSockets: {
+            machine: null,
+            session: null
+          },
+          coins: [],
+          drinks: [],
+          isSwitchedOn: "Off",
           isLoggedIn: false,
           isDoorLocked: true,
-          isSwitchedOn: "Off",
+          password: null,
           sessionData: {
-            coins: [],
-            drinks: [],
-            session: {}
+            sessionId: null,
+            coins: []
           },
           insertedCoinValue: "INSERT COIN",
           totalCashAmount: 0,
@@ -317,33 +321,37 @@
         }
       },
       watch: {
-        'sessionData.session.coins': function (newSessionData, oldSessionData) {
+        'sessionData.coins': function (newSessionData, oldSessionData) {
           console.log("[WATCH: sessionData]");
-          let value = "$0.00";
-          if (this.sessionData.session) {
-            const coinValues = this.sessionData.session.coins.reduce((acc, coin) => {
+          let value = "INSERT COIN";
+          if (this.sessionData.coins) {
+            const coinValues = this.sessionData.coins.reduce((acc, coin) => {
               acc += coin.value * coin.quantity;
               return acc;
             }, 0);
-            value = `$${Number(coinValues / 100).toFixed(2)}`;
+
+            if (coinValues > 0) {
+              value = `$${Number(coinValues / 100).toFixed(2)}`;
+            }
           }
           console.log("Value is " + value);
           this.insertedCoinValue = value;
         }
       },
       mounted() {
-        // this.initWebSocket();
+        this.initMachineWebSocket();
         this.getDrinksList();
         this.getCoinsList();
       },
       methods: {
         buyDrink(drink) {
           console.log("Buying drink...", drink);
-          let requestUrl = `//${SERVER_HOST}/drinks/${drink.id}/buy?sessionId=${this.sessionId ?? ''}`;
+          let requestUrl = `//${SERVER_HOST}/drinks/${drink.id}/buy?sessionId=${this.sessionData.sessionId ?? ''}`;
 
           axios.post(requestUrl, drink)
             .then((response) => {
               console.log(response.data);
+              this.sessionData.coins = response.data.coins;
               if (!response.data.success) {
                 this.$buefy.toast.open({
                   duration: 5000,
@@ -366,7 +374,27 @@
 
         },
         updateCoinQuantity(coin) {
+          console.log("Update coin quantity:", coin);
+          let requestUrl = `//${SERVER_HOST}/coins/setCoinQty`;
 
+          axios.put(requestUrl, coin)
+            .then((response) => {
+              console.log(response.data);
+              if (!response.data.success) {
+                this.$buefy.toast.open({
+                  duration: 5000,
+                  message: response.data.message,
+                  type: 'is-danger'
+                });
+              } else {
+                this.isDoorLocked = false;
+                this.isLoggedIn = true;
+                this.getMachineStatus();
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         },
         updateDrinkQuantity(drink) {
           console.log("Update drink quantity:", drink);
@@ -384,7 +412,7 @@
               } else {
                 this.isDoorLocked = false;
                 this.isLoggedIn = true;
-                getMachineStatus();
+                this.getMachineStatus();
               }
             })
             .catch((error) => {
@@ -493,7 +521,7 @@
           axios.get(`//${SERVER_HOST}/coins`)
             .then(response => {
               console.log(response.data);
-              this.sessionData.coins = response.data.coins;
+              this.coins = _.sortBy(response.data, ['id']);
             })
             .catch(error => {
               console.log(error);
@@ -503,39 +531,48 @@
           axios.get(`//${SERVER_HOST}/drinks`)
             .then(response => {
               // console.log(response);
-              this.sessionData.drinks = response.data;
+              this.drinks = response.data;
+              this.drinks = _.sortBy(response.data, ['name']);
             })
             .catch(error => {
               console.log(error);
             });
         },
-        initWebSocket() {
-          console.log("initWebSocket");
+        initSessionWebSocket() {
+          console.log("initSessionWebSocket");
           this.wsConnection = new WebSocket(`ws://${SERVER_HOST}/websocket/${this.sessionId ?? ''}`);
           this.wsConnection.onmessage = (event) => {
-            console.log("[WebSocket] Incoming data:", event.data);
-            this.wsData = JSON.parse(event.data);
-            this.drinks = this.wsData.drinks;
-            this.sessionData = this.wsData;
+            console.log("[Session WebSocket] Incoming data:", event.data);
+            // this.wsData = JSON.parse(event.data);
+            // this.drinks = this.wsData.drinks;
+            // this.sessionData = this.wsData;
+          }
+        },
+        initMachineWebSocket() {
+          console.log("initMachineWebSocket");
+          this.webSockets.machine = new WebSocket(`ws://${SERVER_HOST}/websocket/00000000-0000-0000-0000-000000000000`);
+          this.webSockets.machine.onmessage = (event) => {
+            console.log("[Machine WebSocket] Incoming data:", event.data);
+            const machineData = JSON.parse(event.data);
+            this.drinks = _.sortBy(machineData.drinks, ['name']);
+            this.coins = _.sortBy(machineData.coins, ['id']);
+            this.isDoorLocked = machineData.is_door_locked;
           }
         },
         insertCoin(coinData) {
-          // console.log("Coin inserted!", JSON.stringify(coinData));
+          console.log("Coin inserted!");
 
           let requestUrl = `//${SERVER_HOST}/coins/insert`;
-          if (this.sessionId) {
-            requestUrl += `?sessionId=${this.sessionId}`;
+          if (this.sessionData.sessionId) {
+            requestUrl += `?sessionId=${this.sessionData.sessionId}`;
           }
 
           axios.post(requestUrl, coinData)
             .then((response) => {
-              this.sessionData.session = response.data;
-              // console.log(this.sessionData);
-              // this.getInsertedCoinValue();
-              if (this.sessionId === null) {
-                this.sessionId = response.data.sessionId;
-                this.wsConnection?.close();
-                this.initWebSocket();
+              console.log(response.data);
+              this.sessionData = response.data;
+              if (this.sessionId !== null) {
+                this.initSessionWebSocket();
               }
             })
             .catch((error) => {

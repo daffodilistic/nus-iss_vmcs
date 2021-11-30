@@ -47,7 +47,7 @@ public class DrinksService implements Service {
                 .get("/", this::listDrinks)
                 .post("/{drinkId}/buy", this::buyDrink)
                 .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
-                .put(PathMatcher.create("/setDrinkQty"), this::setDrinkQty)
+                .put("/setDrinkQty", this::setDrinkQty)
                 .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
                 .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
     }
@@ -60,8 +60,8 @@ public class DrinksService implements Service {
             String sessionId = request.queryParams().first("sessionId").get();
             LOGGER.info("[buyDrink] sessionId: " + sessionId);
             Map<String, Object> result = buyDrinkById(sessionId, Integer.parseInt(drinkId));
-            SessionManager.getInstance().updateSession(sessionId, null);
-            SessionManager.getInstance().updateAllSessions();
+            // Need to update all sessions because of change in drink inventory
+            SessionManager.getInstance().updateMachineStatus();
             response.addHeader("Content-Type", "application/json").send(new Gson().toJson(result));
         } else {
             Map<String, Object> data = new HashMap<String, Object>();
@@ -95,6 +95,10 @@ public class DrinksService implements Service {
                 // Remove coins from customer
                 while (coin.quantity > 0 && price > 0) {
                     coin.quantity--;
+
+                    // Increment coins in DB
+                    this.productDao.setCoinQuantityByValue(coin.value, this.productDao.getCoinQuantityByValue(coin.value) + 1);
+
                     price -= coin.value;
                 }
             }
@@ -155,8 +159,7 @@ public class DrinksService implements Service {
                         .add("success", !status.contains("Failed"))
                         .add("message", status)
                         .build();
-                // TODO: Send an update to all clients via WebSocket
-
+                SessionManager.getInstance().updateMachineStatus();
                 response.send(returnObject);
             }).exceptionally(e -> {
                 LOGGER.info("[setDrinkQty] Exception: " + e.getMessage());

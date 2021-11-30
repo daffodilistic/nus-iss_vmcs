@@ -18,6 +18,7 @@ import javax.json.JsonObjectBuilder;
 import com.cooldrinkscompany.vmcs.controller.ControllerManageDrink;
 import com.cooldrinkscompany.vmcs.controller.ControllerSetSystemStatus;
 import com.cooldrinkscompany.vmcs.pojo.ProductDAOImpl;
+import com.cooldrinkscompany.vmcs.pojo.SessionManager;
 import com.google.gson.Gson;
 
 import io.helidon.common.reactive.Multi;
@@ -112,23 +113,13 @@ public class SystemService implements Service {
     private void toggleDoor(ServerRequest request, ServerResponse response) {
         request.content().as(JsonObject.class).thenAccept(json -> {
             boolean lockDoor = json.getBoolean("lock_door", false);
-            boolean unlockDoor = json.getBoolean("lock_door", true);
-            if (ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")){
-                 String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", lockDoor);
-                 JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                 .add("success", !status.contains("Failed"))
-                 .add("message", status)
-                 .build();
-                 response.send(returnObject);
-            }else{
-                String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", unlockDoor);    
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                .add("success", !status.contains("Failed"))
-                .add("message", status)
-                .build();
+            String status = ControllerSetSystemStatus.setStatus(this.productDao, "isUnlocked", lockDoor);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("success", !status.contains("Failed"))
+                    .add("message", "Door is " + (lockDoor ? "locked" : "unlocked"))
+                    .build();
+            SessionManager.getInstance().updateMachineStatus();
             response.send(returnObject);
-            }
-            
         }).exceptionally(e -> {
             LOGGER.info("[toggleDoor] Exception: " + e.getMessage());
             e.printStackTrace();

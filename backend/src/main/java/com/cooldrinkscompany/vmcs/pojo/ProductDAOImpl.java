@@ -27,7 +27,7 @@ public class ProductDAOImpl implements ProductDAO {
     public final String getDrinksPrice = "SELECT price FROM drinks where name = '%s'";
     public final String setDrinksPrice = "UPDATE drinks SET price = %s where name = '%s'";
     public final String getCoinsPrice = "SELECT denomination FROM coins where name = '%s'";
-    public final String getAllCoins = "SELECT denomination, quantity FROM coins";
+    public final String getAllCoins = "SELECT * FROM coins";
     public final String collectAllCoins = "UPDATE coins SET quantity = 0";
     public final String setStatus = "UPDATE system SET status = %s where name = '%s'";
     public final String getStatus = "SELECT status FROM system where name = '%s'";
@@ -90,6 +90,20 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
+    public int getCoinQuantityByValue(int value) {
+        try {
+            String sql = String.format("SELECT quantity FROM coins where denomination = %d", value);
+            LOGGER.info("getCoinQty full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("quantity").intValue();
+        } catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
+        }
+    }
+
     public String setCoinQuantity(String name, String quantity){
         try {
             String sql = String.format(this.setCoinsQty, quantity, name);
@@ -103,6 +117,20 @@ public class ProductDAOImpl implements ProductDAO {
         }catch (Exception e){
             LOGGER.info(e.toString());
             return "Failed. Unexpected error, please check log.";
+        }
+    }
+
+    public int setCoinQuantityByValue(int value, int quantity) {
+        try {
+            String sql = String.format("UPDATE coins SET quantity = %d where denomination = %d", quantity, value);
+            LOGGER.info("getCoinQty full sql is: " + sql);
+            Single<List<JsonObject>> rows = dbClient.execute(exec -> exec.createQuery(sql).execute())
+                    .map(it -> it.as(JsonObject.class)).collectList();
+            JsonObject result = rows.get().get(0);
+            return result.getJsonNumber("quantity").intValue();
+        } catch (Exception e){
+            LOGGER.info(e.toString());
+            return -1;
         }
     }
 
@@ -285,7 +313,7 @@ public class ProductDAOImpl implements ProductDAO {
             }
         }catch (Exception e){
             LOGGER.info(e.toString());
-            return "NA";
+            return "Failed. Unknown error, please check log.";
         }
     }
     public boolean getStatus(String name){
@@ -301,5 +329,4 @@ public class ProductDAOImpl implements ProductDAO {
             return false;
         }
     }
-
 }    

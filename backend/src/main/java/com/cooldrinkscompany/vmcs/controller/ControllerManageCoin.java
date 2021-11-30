@@ -53,7 +53,7 @@ public class ControllerManageCoin {
         try{
             int qty = Integer.parseInt(quantity);
             if (qty<0 || qty>40){
-                return "Quantity cannot less than 0 or greater than 40";
+                return "Failed. Quantity cannot less than 0 or greater than 40";
             }
             return "Pass";
         }catch(NumberFormatException ne){

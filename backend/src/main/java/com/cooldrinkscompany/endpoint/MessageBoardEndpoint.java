@@ -29,22 +29,23 @@ public class MessageBoardEndpoint extends Endpoint {
 
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
-        String sessionId = session.getPathParameters().get("sessionId");
-        if (sessionId != null) {
-            LOGGER.info(String.format("Session opened ID: %s key: %s", session.getId(), sessionId));
-            if (!sessions.containsKey(sessionId)) {
-                sessions.put(sessionId, new ArrayList<>());
+        String clientId = session.getPathParameters().get("sessionId");
+        if (clientId != null) {
+            LOGGER.info(String.format("Session opened client: %s session: %s", clientId, session.getId()));
+            if (!sessions.containsKey(clientId)) {
+                sessions.put(clientId, new ArrayList<>());
             }
-            sessions.get(sessionId).add(session);
+            sessions.get(clientId).add(session);
 
             session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    LOGGER.info(String.format("Message received from session ID: %s, message: %s, key: %s",
+                    LOGGER.info(String.format("Message received from client: %s, session: %s, message: %s",
+                            clientId,
                             session.getId(),
-                            message,
-                            sessionId));
-                    sessions.get(sessionId).parallelStream().forEach(session2 -> {
+                            message));
+                    sessions.get(clientId).parallelStream().forEach(session2 -> {
+                        // Do not send message to self
                         if (session == session2) {
                             return;
                         }
@@ -55,7 +56,6 @@ public class MessageBoardEndpoint extends Endpoint {
         } else {
             try {
                 session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "Session ID is required"));
-
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -67,7 +67,7 @@ public class MessageBoardEndpoint extends Endpoint {
     public void sendMessage(String message, String key) {
         LOGGER.info("Sending message...");
         if (!sessions.containsKey(key)) {
-            LOGGER.info(String.format("Key '%s' not registered, can't send message '%s'", key, message));
+            LOGGER.info(String.format("Client '%s' not registered, can't send message '%s'", key, message));
             return;
         }
 

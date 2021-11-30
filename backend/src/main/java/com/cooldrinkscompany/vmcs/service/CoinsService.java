@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -43,14 +44,14 @@ public class CoinsService implements Service {
                 .get("/", this::listCoins)
                 .post("/insert", this::insertCoin)
                 .get(PathMatcher.create("/viewCoinQty/*"), this::viewCoinQty)
-                .get(PathMatcher.create("/setCoinQty/*"), this::setCoinQty)
+                .put("/setCoinQty", this::setCoinQty)
                 .get(PathMatcher.create("/viewCoinPrice/*"), this::viewCoinPrice)
                 .get("/queryTotalAmount", this::queryTotalAmount)
                 .get("/collectAllCash", this::collectAllCash);
     }
 
     private void insertCoin(ServerRequest request, ServerResponse response) {
-        LOGGER.info("[insertCoin]");
+        // LOGGER.info("[insertCoin]");
         request.content().as(JsonObject.class).thenAccept(json -> {
             boolean isExistingSession = request.queryParams().first("sessionId").isPresent();
             // Deserialize incoming JSON into a Java InsertCoin object
@@ -59,12 +60,12 @@ public class CoinsService implements Service {
             // LOGGER.info(gson.toJson(coin));
             if (isExistingSession) {
                 // Update coins for existing session
-                // LOGGER.info("[insertCoin] existing session");
+                LOGGER.info("[insertCoin] existing session");
                 String sessionId = request.queryParams().first("sessionId").get();
                 Session session = SESSION_MANAGER.updateSession(sessionId, coin);
                 response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
             } else {
-                // LOGGER.info("[insertCoin] new session");
+                LOGGER.info("[insertCoin] new session");
                 // Setup a new session for the request
                 Session session = SESSION_MANAGER.createSession(coin);
                 response.addHeader("Content-Type", "application/json").send(gson.toJson(session));
@@ -88,51 +89,67 @@ public class CoinsService implements Service {
     }
 
     private void listCoins(ServerRequest request, ServerResponse response) {
-        Multi<JsonObject> rows = this.productDao.getDbClient()
-                .execute(exec -> exec.createQuery("SELECT * FROM coins").execute()).map(it -> it.as(JsonObject.class));
-
-        rows.collectList().thenAccept(list -> {
-            JsonArrayBuilder arrayBuilder = JSON_FACTORY.createArrayBuilder();
-            list.forEach(arrayBuilder::add);
-            JsonArray array = arrayBuilder.build();
-            response.send(Json.createObjectBuilder().add("coins", array).build());
-        });
+        List<JsonObject> coins = this.productDao.getAllCoins();
+        JsonArrayBuilder coinsBuilder = JSON_FACTORY.createArrayBuilder();
+        for (JsonObject coin : coins) {
+            coinsBuilder.add(coin);
+        }
+        JsonArray coinsArray = coinsBuilder.build();
+        response.send(coinsArray);
     }
 
     private void viewCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start viewing coins qty");
-        if(ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
-        String coinName = request.path().toString().replace("/viewCoinQty/", "");
-        int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                .add("Coin Qty:", qty != Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist")
-                .build();
-        response.send(returnObject);
-        }else{
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Coin Qty:", "Door locked. Please unlock door first.").build();
-        response.send(returnObject);
+        if (ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")) {
+            String coinName = request.path().toString().replace("/viewCoinQty/", "");
+            int qty = ControllerManageCoin.queryCoinQty(this.productDao, coinName);
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Coin Qty:",
+                            qty != Integer.MAX_VALUE ? String.valueOf(qty) : "ERROR: Coin type does not exist")
+                    .build();
+            response.send(returnObject);
+        } else {
+            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                    .add("Set Coin Qty:", "Door locked. Please unlock door first.").build();
+            response.send(returnObject);
         }
     }
 
     private void setCoinQty(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting coins qty");
-        if(ControllerSetSystemStatus.getStatus(this.productDao,"isUnlocked")){
-        String coinParams = request.path().toString().replace("/setCoinQty/", "");
-        String[] coinTypeAndQty = coinParams.split(":");
-        if (coinTypeAndQty.length != 2) {
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Status:", "Invalid Input! Must be CoinType:Qty format").build();
-            response.send(returnObject);
+        boolean canSetCoinQuantity = ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
+        if (canSetCoinQuantity) {
+            request.content().as(JsonObject.class).thenAccept(json -> {
+                String coinName = json.getString("name");
+                String quantity = String.valueOf(json.getInt("quantity", -1));
+                String status = ControllerManageCoin.setCoinQty(this.productDao, coinName, quantity);
+                JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
+                        .add("success", !status.contains("Failed"))
+                        .add("message", status)
+                        .build();
+                SessionManager.getInstance().updateMachineStatus();
+                response.send(returnObject);
+            }).exceptionally(e -> {
+                LOGGER.info("[setCoinQty] Exception: " + e.getMessage());
+                e.printStackTrace();
+
+                StringWriter stackTrace = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTrace));
+
+                Map<String, Object> data = new HashMap<String, Object>();
+                data.put("error", "Cannot update coin quantity!");
+                data.put("message", e.toString());
+
+                // LOGGER.info("[setCoinQty] Data: " + new Gson().toJson(data));
+
+                response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+                return null;
+            });
         } else {
-            String coinType = coinTypeAndQty[0];
-            String coinQty = coinTypeAndQty[1];
-            String status = ControllerManageCoin.setCoinQty(this.productDao, coinType, coinQty);
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Status:", status).build();
-            response.send(returnObject);
-        }
-        }else{
-        JsonObject returnObject = JSON_FACTORY.createObjectBuilder().add("Set Coin Qty:", "Door locked. Please unlock door first.").build();
-        response.send(returnObject);
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Cannot update coin quantity!");
+            data.put("message", "Door locked. Please unlock door first.");
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
         }
     }
 

@@ -34,13 +34,19 @@ public final class SessionManager {
     public Session createSession(InsertCoin coin) {
         Session session = new Session(coin);
         sessions.add(session);
-        LOGGER.info(new Gson().toJson(sessions));
+        // LOGGER.info(new Gson().toJson(sessions));
         return session;
     }
 
     public Session updateSession(String sessionId, InsertCoin coin) {
         Session session = null;
         // LOGGER.info("[updateSession] Session ID is " + sessionId);
+        // if (sessions.contains(sessionId)) {
+        // } else {
+        //     Session session = new Session(coin);
+        //     sessions.add(session);
+        // }
+
         for (Session s : sessions) {
             // LOGGER.info("[updateSession] Existing session ID is " +
             // s.sessionId.toString());
@@ -59,7 +65,7 @@ public final class SessionManager {
                 break;
             }
         }
-        LOGGER.info(new Gson().toJson(sessions));
+
         return session;
     }
 
@@ -82,13 +88,9 @@ public final class SessionManager {
         return session;
     }
 
-    public void updateAllSessions() {
-        for (Session s : sessions) {
-            Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
-            VendingMachineSnapshot snapshot = VendingMachineSnapshotFactory.getInstance().getSnapshot();
-            JsonElement jsonElement = gson.toJsonTree(snapshot);
-            jsonElement.getAsJsonObject().add("session", gson.toJsonTree(s));
-            MessageBoardEndpoint.getInstance().sendMessage(gson.toJson(jsonElement), s.sessionId.toString());
-        }
+    public void updateMachineStatus() {
+        VendingMachineSnapshot snapshot = VendingMachineSnapshotFactory.getInstance().getSnapshot();
+        Gson gson = new GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES).create();
+        MessageBoardEndpoint.getInstance().sendMessage(gson.toJson(snapshot), "00000000-0000-0000-0000-000000000000");
     }
 }
