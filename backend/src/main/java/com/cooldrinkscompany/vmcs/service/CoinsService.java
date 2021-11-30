@@ -58,6 +58,10 @@ public class CoinsService implements Service {
             Gson gson = new Gson();
             InsertCoin coin = gson.fromJson(json.toString(), InsertCoin.class);
             // LOGGER.info(gson.toJson(coin));
+            if (!coin.country.equals("SG")) {
+                throw new IllegalArgumentException("Only Singapore coins are supported");
+            }
+
             if (isExistingSession) {
                 // Update coins for existing session
                 LOGGER.info("[insertCoin] existing session");

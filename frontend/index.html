@@ -570,9 +570,17 @@
           axios.post(requestUrl, coinData)
             .then((response) => {
               console.log(response.data);
-              this.sessionData = response.data;
-              if (this.sessionId !== null) {
-                this.initSessionWebSocket();
+              if (response.data.error) {
+                this.$buefy.toast.open({
+                  duration: 5000,
+                  message: response.data.message.split(":")[1].trim(),
+                  type: 'is-danger'
+                });
+              } else {
+                this.sessionData = response.data;
+                if (this.sessionData.sessionId !== null) {
+                  this.initSessionWebSocket();
+                }
               }
             })
             .catch((error) => {
