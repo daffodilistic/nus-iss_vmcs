@@ -136,7 +136,23 @@
             <div class="columns container is-centered">
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Drinks</h3>
-                <b-table :data="drinks" :columns="drinksTableColumns" bordered striped></b-table>
+                <b-table :data="drinks" bordered striped>
+                  <b-table-column field="id" label="ID" width="40" numeric v-slot="props">{{ props.row.id }}
+                  </b-table-column>
+                  <b-table-column field="name" label="Name" v-slot="props">{{ props.row.name }}</b-table-column>
+                  <b-table-column field="quantity" label="Quantity" numeric v-slot="props">{{ props.row.id }}
+                  </b-table-column>
+                  <b-table-column field="price" label="Price" width="240" v-slot="props">
+                    <b-field position="is-centered">
+                      <b-field grouped>
+                        <b-numberinput v-model="props.row.price" step="5" min-step="5" min="0" expanded
+                          controls-position="compact" controls-alignment="right"></b-numberinput>
+                        <b-button v-on:click="updateDrinkPrice(props.row)" class="is-info" icon-left="content-save">
+                        </b-button>
+                      </b-field>
+                    </b-field>
+                  </b-table-column>
+                </b-table>
               </div>
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Coins</h3>
@@ -421,6 +437,26 @@
         },
         updateDrinkPrice(drink) {
           console.log("Update drink price:", drink);
+          let requestUrl = `//${SERVER_HOST}/drinks/setDrinkPrice`;
+
+          axios.put(requestUrl, drink)
+            .then((response) => {
+              console.log(response.data);
+              if (!response.data.success) {
+                this.$buefy.toast.open({
+                  duration: 5000,
+                  message: response.data.message,
+                  type: 'is-danger'
+                });
+              } else {
+                this.isDoorLocked = false;
+                this.isLoggedIn = true;
+                this.getMachineStatus();
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         },
         toggleDoor() {
           this.isDoorLocked = !this.isDoorLocked;

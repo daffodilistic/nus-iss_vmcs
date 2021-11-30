@@ -274,7 +274,7 @@ public class ProductDAOImpl implements ProductDAO {
             LOGGER.info("setDrinkPrice full sql is: " + sql);
             String sqlResponse = dbClient.execute(exec -> exec.update(sql)).get().toString();
             if (sqlResponse.equals("0")){
-                return "SQL Statement update failed. Do you indicate the correct Drink name?";
+                return "Failed. SQL Statement update failed. Do you indicate the correct Drink name?";
             }else{
                 return "Success";
             }

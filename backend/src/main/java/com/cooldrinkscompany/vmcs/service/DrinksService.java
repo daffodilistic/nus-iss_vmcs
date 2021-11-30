@@ -49,7 +49,7 @@ public class DrinksService implements Service {
                 .get(PathMatcher.create("/viewDrinkQty/*"), this::viewDrinkQty)
                 .put("/setDrinkQty", this::setDrinkQty)
                 .get(PathMatcher.create("/viewDrinkPrice/*"), this::viewDrinkPrice)
-                .get(PathMatcher.create("/setDrinkPrice/*"), this::setDrinkPrice);
+                .put("/setDrinkPrice", this::setDrinkPrice);
     }
 
     private void buyDrink(ServerRequest request, ServerResponse response) {
@@ -97,7 +97,8 @@ public class DrinksService implements Service {
                     coin.quantity--;
 
                     // Increment coins in DB
-                    this.productDao.setCoinQuantityByValue(coin.value, this.productDao.getCoinQuantityByValue(coin.value) + 1);
+                    this.productDao.setCoinQuantityByValue(coin.value,
+                            this.productDao.getCoinQuantityByValue(coin.value) + 1);
 
                     price -= coin.value;
                 }
@@ -205,28 +206,40 @@ public class DrinksService implements Service {
 
     private void setDrinkPrice(ServerRequest request, ServerResponse response) {
         LOGGER.info("start setting drinks price");
-        if (ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn")
-                && ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked")) {
-            String drinkParams = request.path().toString().replace("/setDrinkPrice/", "");
-            String[] drinkTypeAndPrice = drinkParams.split(":");
-            if (drinkTypeAndPrice.length != 2) {
+        boolean isLoggedIn = ControllerSetSystemStatus.getStatus(this.productDao, "isLoggedIn");
+        boolean isDoorUnlocked = ControllerSetSystemStatus.getStatus(this.productDao, "isUnlocked");
+        if (isLoggedIn && isDoorUnlocked) {
+            request.content().as(JsonObject.class).thenAccept(json -> {
+                String drinkName = json.getString("name");
+                String drinkPrice = String.valueOf(json.getInt("price", -1));
+                String status = ControllerManageDrink.setDrinkPrice(this.productDao, drinkName, drinkPrice);
                 JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                        .add("Status:", "Invalid Input! Must be DrinkType:Price format")
+                        .add("success", !status.contains("Failed"))
+                        .add("message", status)
                         .build();
+                SessionManager.getInstance().updateMachineStatus();
                 response.send(returnObject);
-            } else {
-                String drinkType = drinkTypeAndPrice[0];
-                String drinkPrice = drinkTypeAndPrice[1];
-                String status = ControllerManageDrink.setDrinkPrice(this.productDao, drinkType, drinkPrice);
-                JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                        .add("Status:", status)
-                        .build();
-                response.send(returnObject);
-            }
+            }).exceptionally(e -> {
+                LOGGER.info("[setDrinkPrice] Exception: " + e.getMessage());
+                e.printStackTrace();
+
+                StringWriter stackTrace = new StringWriter();
+                e.printStackTrace(new PrintWriter(stackTrace));
+
+                Map<String, Object> data = new HashMap<String, Object>();
+                data.put("error", "Cannot update drink price!");
+                data.put("message", e.getMessage());
+
+                // LOGGER.info("[setDrinkQty] Data: " + new Gson().toJson(data));
+
+                response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
+                return null;
+            });
         } else {
-            JsonObject returnObject = JSON_FACTORY.createObjectBuilder()
-                    .add("Set Drink Price:", "System is currently locked. Please login and unlock door first.").build();
-            response.send(returnObject);
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("error", "Cannot update drink price!");
+            data.put("message", "System is currently locked. Please login and unlock door first.");
+            response.addHeader("Content-Type", "application/json").send(new Gson().toJson(data));
         }
     }
 }

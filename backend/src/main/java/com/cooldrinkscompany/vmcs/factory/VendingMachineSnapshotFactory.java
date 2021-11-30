@@ -34,7 +34,7 @@ public final class VendingMachineSnapshotFactory {
 
     public VendingMachineSnapshot getSnapshot() {
         VendingMachineSnapshot snapshot = new VendingMachineSnapshot();
-        snapshot.isDoorLocked = this.productDAO.getStatus("isUnlocked");
+        snapshot.isDoorLocked = !this.productDAO.getStatus("isUnlocked");
         Gson gson = new Gson();
         for (JsonObject coin : productDAO.getAllCoins()) {
             snapshot.coins.add(gson.fromJson(coin.toString(), Coin.class));
