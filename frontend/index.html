@@ -33,6 +33,7 @@
             </div>
           </div>
         </div> -->
+        <!-- Customer Panel -->
         <b-collapse class="panel is-dark" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
@@ -43,7 +44,7 @@
             <div class="container is-fluid">
               <div class="columns container is-centered">
                 <div class="column is-narrow">
-                  <button v-on:click="ejectCoins()" class="button is-dark">{{ getInsertedCoinValue() }}</button>
+                  <button v-on:click="ejectCoins()" class="button is-dark">{{ insertedCoinValue }}</button>
                 </div>
               </div>
               <div class="columns container is-centered">
@@ -73,7 +74,7 @@
           </div>
           <div class="panel-block">
             <div class="columns is-centered">
-              <template v-for="(drink, index) in drinks">
+              <template v-for="(drink, index) in sessionData.drinks">
                 <div class="column is-narrow" :key="index">
                   <div class="card has-background-info-light is-bordered">
                     <div class="card-content">
@@ -100,6 +101,7 @@
             </div>
           </div>
         </b-collapse>
+        <!-- Maintainer Panel -->
         <b-collapse class="panel is-warning" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
@@ -132,11 +134,11 @@
             <div class="columns container is-centered">
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Drinks</h3>
-                <b-table :data="drinks" :columns="drinksTableColumns" bordered striped></b-table>
+                <b-table :data="sessionData.drinks" :columns="drinksTableColumns" bordered striped></b-table>
               </div>
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Coins</h3>
-                <!-- <b-table :data="coins" :columns="drinksTableColumns" bordered striped></b-table> -->
+                <b-table :data="sessionData.coins" :columns="coinsTableColumns" bordered striped></b-table>
               </div>
             </div>
           </div>
@@ -169,6 +171,7 @@
             </div>
           </div>
         </b-collapse>
+        <!-- Machinery Panel -->
         <b-collapse class="panel is-danger" animation="slide" :open=true>
           <template #trigger>
             <div class="panel-heading" role="button">
@@ -191,10 +194,20 @@
             <div class="columns container is-centered">
               <div class="column is-narrow">
                 <h3 class="title is-5 has-text-centered">Drinks</h3>
-                <template v-for="(drink, index) in drinks">
+                <template v-for="(drink, index) in sessionData.drinks">
                   <b-field grouped :label="drink.name">
                     <b-numberinput min="0" controls-rounded v-model="drink.quantity"></b-numberinput>
                     <b-button v-on:click="updateDrinkQuantity(drink)" class="is-info" icon-left="content-save">
+                    </b-button>
+                  </b-field>
+                </template>
+              </div>
+              <div class="column is-narrow">
+                <h3 class="title is-5 has-text-centered">Coins</h3>
+                <template v-for="(coin, index) in sessionData.coins">
+                  <b-field grouped :label="coin.name">
+                    <b-numberinput min="0" controls-rounded v-model="coin.quantity"></b-numberinput>
+                    <b-button v-on:click="updateCoinQuantity(coin)" class="is-info" icon-left="content-save">
                     </b-button>
                   </b-field>
                 </template>
@@ -211,7 +224,6 @@
     new Vue({
       el: '#app',
       computed: {
-
       },
       data() {
         return {
@@ -222,10 +234,31 @@
           isLoggedIn: false,
           isDoorLocked: true,
           isSwitchedOn: "Off",
-          sessionData: null,
+          sessionData: {
+            coins: [],
+            drinks: [],
+            session: {}
+          },
+          insertedCoinValue: "INSERT COIN",
           totalCashAmount: 0,
           cashCollected: 0,
-          drinks: [],
+          coinsTableColumns: Object.freeze([
+            {
+              field: 'id',
+              label: 'ID',
+              width: '40',
+              numeric: true
+            },
+            {
+              field: 'name',
+              label: 'Name'
+            },
+            {
+              field: 'quantity',
+              label: 'Quantity',
+              numeric: true
+            },
+          ]),
           drinksTableColumns: Object.freeze([
             {
               field: 'id',
@@ -283,9 +316,25 @@
           ])
         }
       },
+      watch: {
+        'sessionData.session.coins': function (newSessionData, oldSessionData) {
+          console.log("[WATCH: sessionData]");
+          let value = "$0.00";
+          if (this.sessionData.session) {
+            const coinValues = this.sessionData.session.coins.reduce((acc, coin) => {
+              acc += coin.value * coin.quantity;
+              return acc;
+            }, 0);
+            value = `$${Number(coinValues / 100).toFixed(2)}`;
+          }
+          console.log("Value is " + value);
+          this.insertedCoinValue = value;
+        }
+      },
       mounted() {
-        this.initWebSocket();
+        // this.initWebSocket();
         this.getDrinksList();
+        this.getCoinsList();
       },
       methods: {
         buyDrink(drink) {
@@ -316,16 +365,8 @@
         ejectCoins() {
 
         },
-        getInsertedCoinValue() {
-          if (this.sessionData) {
-            const coinValues = this.sessionData.coins.reduce((acc, coin) => {
-              acc += coin.value * coin.quantity;
-              return acc;
-            }, 0);
-            return `$${Number(coinValues / 100).toFixed(2)}`;
-          } else {
-            return "$0.00";
-          }
+        updateCoinQuantity(coin) {
+
         },
         updateDrinkQuantity(drink) {
           console.log("Update drink quantity:", drink);
@@ -448,11 +489,21 @@
               console.log(error);
             });
         },
+        getCoinsList() {
+          axios.get(`//${SERVER_HOST}/coins`)
+            .then(response => {
+              console.log(response.data);
+              this.sessionData.coins = response.data.coins;
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        },
         getDrinksList() {
           axios.get(`//${SERVER_HOST}/drinks`)
             .then(response => {
               // console.log(response);
-              this.drinks = response.data;
+              this.sessionData.drinks = response.data;
             })
             .catch(error => {
               console.log(error);
@@ -465,7 +516,7 @@
             console.log("[WebSocket] Incoming data:", event.data);
             this.wsData = JSON.parse(event.data);
             this.drinks = this.wsData.drinks;
-            this.sessionData = this.wsData.session;
+            this.sessionData = this.wsData;
           }
         },
         insertCoin(coinData) {
@@ -478,11 +529,12 @@
 
           axios.post(requestUrl, coinData)
             .then((response) => {
-              console.log(response.data);
-              this.sessionData = response.data;
+              this.sessionData.session = response.data;
+              // console.log(this.sessionData);
+              // this.getInsertedCoinValue();
               if (this.sessionId === null) {
                 this.sessionId = response.data.sessionId;
-                this.wsConnection.close();
+                this.wsConnection?.close();
                 this.initWebSocket();
               }
             })
