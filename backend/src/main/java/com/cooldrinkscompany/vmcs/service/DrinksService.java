@@ -170,7 +170,7 @@ public class DrinksService implements Service {
 
                 Map<String, Object> data = new HashMap<String, Object>();
                 data.put("error", "Cannot update drink quantity!");
-                data.put("message", e.toString());
+                data.put("message", e.getMessage());
 
                 // LOGGER.info("[setDrinkQty] Data: " + new Gson().toJson(data));
 

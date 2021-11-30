@@ -81,7 +81,7 @@ public class SystemService implements Service {
 
             Map<String, Object> data = new HashMap<String, Object>();
             data.put("error", "Failed login!");
-            data.put("message", e.toString());
+            data.put("message", e.getMessage());
 
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
@@ -129,7 +129,7 @@ public class SystemService implements Service {
 
             Map<String, Object> data = new HashMap<String, Object>();
             data.put("error", "Failed to lock the door!");
-            data.put("message", e.toString());
+            data.put("message", e.getMessage());
 
             // LOGGER.info("[insertCoin] Data: " + new Gson().toJson(data));
 
